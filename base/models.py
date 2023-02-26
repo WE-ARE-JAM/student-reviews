@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinLengthValidator
 
 # User Model
 
@@ -44,7 +45,7 @@ class Review (models.Model):
     id= models.IntegerField(primary_key=True)
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
-    text= models.TextField(max_length=1000, min_length=50, null=False)
+    text= models.TextField(max_length=1000, MinLengthValidator(50), null=False)
     is_good= models.BooleanField(null=False)
     created= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
@@ -53,7 +54,7 @@ class Review (models.Model):
 
 # Vote Model
 
-class Vote (model.Model):
+class Vote (models.Model):
     VOTE_TYPE= (
         ("UP", "Upvote"),
         ("DOWN", "Downvote")
@@ -67,6 +68,15 @@ class Vote (model.Model):
 
 # Staff Inbox
 
+class Staff_Inbox (models.Model):
+    id= models.IntegerField(primary_key=True)
+    staff= models.ForeignKey(Staff, on_delete=models.CASCADE)
+    message= models.TextField(max_length=50, null=False)
+
+class Student_Inbox (models.Model):
+    id= models.IntegerField(primary_key=True)
+    student= models.ForeignKey(Student, on_delete=models.CASCADE)
+    message= models.TextField(max_length=50, null=False)
 
 
 
