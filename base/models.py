@@ -45,7 +45,7 @@ class Review (models.Model):
     id= models.IntegerField(primary_key=True)
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
-    text= models.TextField(max_length=1000, MinLengthValidator(50), null=False)
+    text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
     is_good= models.BooleanField(null=False)
     created= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
