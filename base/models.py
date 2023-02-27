@@ -39,7 +39,14 @@ class Staff (models.Model):
     faculty= models.CharField(max_length=100, null=True)
     department= models.CharField(max_length=100, null=True)
     prefix= models.CharField(max_length=5, choices=PREFIX, default="Mx.")
-    users= models.OneToOneField(User, on_delete=models.CASCADE)
+    user= models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s : %s : %s' % (self.faculty, self.department, self.get_name())
+
+    @property
+    def get_name(self):
+        return '%s %s %s' % (self.prefix, self.user.first_name, self.user.last_name)
 
 
 # Student Model
@@ -57,8 +64,40 @@ class Student (models.Model):
     teamwork= models.IntegerField(default=0)
 
     lectured_by= models.ManyToManyField(Staff)
-    users= models.OneToOneField(User, on_delete=models.CASCADE)
+    user= models.OneToOneField(User, on_delete=models.CASCADE)
 
+    @property
+    def get_name(self):
+        return '%s %s' % (self.user.first_name, self.user.last_name)
+    
+    def __str__(self):
+        return '%s : %s : %s : %s' % (self.get_name(), self.faculty, self.department, self.bio)
+
+    @property
+    def get_leadership(self):
+        return self.leardership
+    
+    @property
+    def get_respect(self):
+        return self.respect
+    
+    @property
+    def get_punctuality(self):
+        return self.punctuality
+    
+    @property
+    def get_participation(self):
+        return self.participation
+    
+    @property
+    def get_teamwork(self):
+        return self.teamwork
+    
+    def get_stats(self):
+        return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
+
+    def get_lecturers(self):
+        return self.staff_set.all()
 
 # Review Model
 
@@ -78,6 +117,8 @@ class Review (models.Model):
     punctuality= models.IntegerField(default=0)
     participation= models.IntegerField(default=0)
     teamwork= models.IntegerField(default=0)
+
+
 
 
 # Vote Model
