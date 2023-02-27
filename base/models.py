@@ -45,7 +45,7 @@ class Staff (models.Model):
         return '%s : %s : %s' % (self.faculty, self.department, self.get_name())
 
     @property
-    def get_name(self):
+    def name(self):
         return '%s %s %s' % (self.prefix, self.user.first_name, self.user.last_name)
 
 
@@ -67,31 +67,11 @@ class Student (models.Model):
     user= models.OneToOneField(User, on_delete=models.CASCADE)
 
     @property
-    def get_name(self):
+    def name(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
     
     def __str__(self):
         return '%s : %s : %s : %s' % (self.get_name(), self.faculty, self.department, self.bio)
-
-    @property
-    def get_leadership(self):
-        return self.leardership
-    
-    @property
-    def get_respect(self):
-        return self.respect
-    
-    @property
-    def get_punctuality(self):
-        return self.punctuality
-    
-    @property
-    def get_participation(self):
-        return self.participation
-    
-    @property
-    def get_teamwork(self):
-        return self.teamwork
     
     def get_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
