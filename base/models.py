@@ -9,11 +9,15 @@ class User (AbstractUser):
         ('STAFF', 'Staff'),
         ('STUDENT', 'Student')
     )
-    
+
     access=models.CharField(max_length=7, choices=ACCESS_TYPE, default="STAFF")
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, null=False)
     avatar = models.ImageField(null=True, default="avatar.svg") #python -m pip install pillow
+    first_name=models.CharField(null=False, max_length=50)
+    last_name=models.CharField(null=False, max_length=100)
+
     #other fields e.g. firstname, lastname are included by default as part of AbstractUser
+
     USERNAME_FIELD = 'email'    #lets user log in with email instead of username
     REQUIRED_FIELDS = []
 
@@ -21,9 +25,20 @@ class User (AbstractUser):
 # Staff Model
 
 class Staff (models.Model):
+
+    PREFIX= (
+        ('Prof.', 'Prof.'),
+        ('Dr.', 'Dr.'),
+        ('Mrs.', 'Mrs.'),
+        ('Ms.', 'Mrs.'),
+        ('Mr.', 'Mr.'),
+        ('Mx.', 'Mx.')  #gender neutral prefix
+    )
+
     id= models.IntegerField(primary_key=True, unique=True)
     faculty= models.CharField(max_length=100, null=True)
     department= models.CharField(max_length=100, null=True)
+    prefix= models.CharField(max_length=5, choices=PREFIX, default="Mx.")
     users= models.OneToOneField(User, on_delete=models.CASCADE)
 
 
@@ -34,9 +49,15 @@ class Student (models.Model):
     faculty= models.CharField(max_length=100, null=False)
     department= models.CharField(max_length=100, null=False)
     bio= models.TextField(max_length=500, null=True)
+    #stats
+    leardership= models.IntegerField(default=0)
+    respect= models.IntegerField(default=0)
+    punctuality= models.IntegerField(default=0)
+    participation= models.IntegerField(default=0)
+    teamwork= models.IntegerField(default=0)
+
     lectured_by= models.ManyToManyField(Staff)
     users= models.OneToOneField(User, on_delete=models.CASCADE)
-    #STATS MISSING
 
 
 # Review Model
@@ -50,7 +71,14 @@ class Review (models.Model):
     created= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
     deleted= models.BooleanField(default=False)
-    #VOTES AND STATS MISSING
+
+    #stats
+    leardership= models.IntegerField(default=0)
+    respect= models.IntegerField(default=0)
+    punctuality= models.IntegerField(default=0)
+    participation= models.IntegerField(default=0)
+    teamwork= models.IntegerField(default=0)
+
 
 # Vote Model
 
