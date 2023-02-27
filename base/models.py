@@ -115,7 +115,8 @@ class Review (models.Model):
 
     def update_stats(self):
         student= Student.objects.get(id=self.student.id)
-        stats= Stats.objects.get(id=student.)
+        stats= Stats.objects.get(id=student.stats.id)
+        
 
     @property
     def num_upvotes(self):
