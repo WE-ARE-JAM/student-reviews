@@ -131,6 +131,12 @@ class Review (models.Model):
         stats.participation = F('participation') + self.participation
         stats.teamwork = F('teamwork') + self.teamwork
         stats.save()
+    
+    @classmethod
+    def create(cls, staff, student, text, is_good):
+        review= cls(staff=staff, student=student, text=text, is_good=is_good)
+        review.update_stats()
+        return review
 
     def save (self, *args, **kwargs):
         super().save(*args, **kwargs)  # Call the "real" save() method
@@ -167,6 +173,9 @@ class Vote (models.Model):
     review= models.ForeignKey(Review, on_delete= models.CASCADE)
     time= models.DateTimeField(auto_now_add=True)
     value= models.CharField(choices=VOTE_TYPE, max_length=4)
+
+    def __str__(self):
+        return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
 
 # Staff Inbox
 
