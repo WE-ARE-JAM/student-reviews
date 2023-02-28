@@ -11,7 +11,7 @@ class User (AbstractUser):
     )
 
     access=models.CharField(max_length=7, choices=ACCESS_TYPE, default="STAFF")
-    email = models.EmailField(unique=True, null=False)
+    email = models.EmailField(unique=True, null=True)
     avatar = models.ImageField(null=True, default="avatar.svg") #python -m pip install pillow
     first_name=models.CharField(null=False, max_length=50)
     last_name=models.CharField(null=False, max_length=100)
