@@ -130,7 +130,7 @@ class Review (models.Model):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
 
     def update_stats(self):
-        student=Student.objects.get(id=student.id)
+        #student=Student.objects.get(id=student.id)
         stats= Stats.objects.get(id=student.stats.id)
         stats.leadership = F('leadership') + self.leadership    #add new stats values to stats model
         stats.respect = F('respect') + self.respect
