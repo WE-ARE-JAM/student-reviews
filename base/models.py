@@ -48,32 +48,6 @@ class Staff (models.Model):
     def name(self):
         return '%s %s %s' % (self.prefix, self.user.first_name, self.user.last_name)
 
-
-# Student Model
-
-class Student (models.Model):
-    id= models.IntegerField(primary_key=True, unique=True)
-    faculty= models.CharField(max_length=100, null=False)
-    department= models.CharField(max_length=100, null=False)
-    bio= models.TextField(max_length=500, null=True)
-    lectured_by= models.ManyToManyField(Staff)
-    user= models.OneToOneField(User, on_delete=models.CASCADE)
-    stats= models.OneToOneField(Stats,on_delete=models.CASCADE)
-
-    @property
-    def name(self):
-        return '%s %s' % (self.user.first_name, self.user.last_name)
-    
-    def __str__(self):
-        return '%s : %s : %s : %s' % (self.get_name(), self.faculty, self.department, self.bio)
-    
-    def get_stats(self):
-        return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
-
-    def get_lecturers(self):
-        return self.lectured_by.all()
-
-
 # Stats Model
 
 class Stats (models.Model):
@@ -84,8 +58,32 @@ class Stats (models.Model):
     participation= models.IntegerField(default=0)
     teamwork= models.IntegerField(default=0)
 
+    karma= models.IntegerField(default=0)
+
     def get_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
+
+
+# Student Model
+
+class Student (models.Model):
+    id= models.IntegerField(primary_key=True, unique=True)
+    faculty= models.CharField(max_length=100, null=False)
+    department= models.CharField(max_length=100, null=False)
+    bio= models.TextField(max_length=500, null=True)
+    lectured_by= models.ManyToManyField(Staff)
+    user= models.OneToOneField(User, on_delete=models.CASCADE)
+    stats= models.OneToOneField(Stats, on_delete=models.CASCADE, null=True)
+
+    @property
+    def name(self):
+        return '%s %s' % (self.user.first_name, self.user.last_name)
+    
+    def __str__(self):
+        return '%s : %s : %s : %s' % (self.get_name(), self.faculty, self.department, self.bio)
+
+    def get_lecturers(self):
+        return self.lectured_by.all()
 
 
 # Review Model
@@ -110,13 +108,18 @@ class Review (models.Model):
     def __str__(self):
         return 'staff: %s student: %s text: %s' % (self.staff.name, self.student.name, self.text)
 
-    def get_stats(self):
+    def get_review_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
 
     def update_stats(self):
         student= Student.objects.get(id=self.student.id)
         stats= Stats.objects.get(id=student.stats.id)
-        
+        stats.leadership = F('leadership') + self.leadership    #add new stats values to stats model
+        stats.respect = F('respect') + self.respect
+        stats.punctuality= F('punctuality') + self.punctuality
+        stats.participation = F('participation') + self.participation
+        stats.teamwork = F('teamwork') + self.teamwork
+        stats.save()
 
     @property
     def num_upvotes(self):
@@ -125,11 +128,12 @@ class Review (models.Model):
     @property
     def num_downvotes(self):
         return Vote.objects.filter(review=self.id, value="DOWN").count()
-
+    
     @property
     def karma(self):
-        karma= 100 + (self.num_upvotes*10) 
-        return 
+        return
+
+
 
 # Vote Model
 
