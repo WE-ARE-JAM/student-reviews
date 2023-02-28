@@ -81,7 +81,7 @@ class Student (models.Model):
         return '%s %s' % (self.user.first_name, self.user.last_name)
     
     def __str__(self):
-        return '%s : %s : %s : %s' % (self.get_name(), self.faculty, self.department, self.bio)
+        return '%s : %s : %s : %s' % (self.name, self.faculty, self.department, self.bio)
 
     def get_lecturers(self):
         return self.lectured_by.all()
