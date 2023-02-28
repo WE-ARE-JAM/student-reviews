@@ -75,14 +75,14 @@ class Student (models.Model):
             karma += review.karma
         return karma
 
-    @classmethod
-    def create_stats(cls, self):
-        stats=cls(student=self)
-        return stats
+   # @classmethod
+    #def create_stats(cls, self):
+    #    stats=cls(student=self)
+    #    return stats
 
-    def save (self, *args, **kwargs):   #NOT DOING WHAT I WANT
-        super().save(*args, **kwargs)  # Call the "real" save() method
-        self.create_stats(cls) #create stats record before student record
+    #def save (self, *args, **kwargs):   #NOT DOING WHAT I WANT
+    #    super().save(*args, **kwargs)  # Call the "real" save() method
+    #    self.create_stats(cls) #create stats record before student record
         
 
 # Stats Model
@@ -139,14 +139,14 @@ class Review (models.Model):
         stats.teamwork = F('teamwork') + self.teamwork
         stats.save()
     
-    @classmethod
-    def create(cls, staff, student, text, is_good):
-        review= cls(staff=staff, student=student, text=text, is_good=is_good)
+   # @classmethod
+   # def create(cls, staff, student, text, is_good):
+    #    review= cls(staff=staff, student=student, text=text, is_good=is_good)
         #review.update_stats() #NOT WORKING SO REMOVE FOR NOW
-        return review
+    #    return review
 
-    def save (self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Call the "real" save() method
+   # def save (self, *args, **kwargs):
+    #    super().save(*args, **kwargs)  # Call the "real" save() method
        # self.update_stats() #immediately update student's stats when a review is saved #NOT WORKING SO REMOVE FOR NOW
 
     @property
@@ -184,10 +184,10 @@ class Vote (models.Model):
     def __str__(self):
         return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
     
-    @classmethod
-    def create(cls, staff, review, value):  #come back and add logic for removing vote/voting twice
-        vote= cls(staff=staff, review=review, value=value)
-        return vote
+   # @classmethod
+   # def create(cls, staff, review, value):  #come back and add logic for removing vote/voting twice
+     #   vote= cls(staff=staff, review=review, value=value)
+     #   return vote
         
 
 
