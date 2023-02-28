@@ -58,7 +58,7 @@ class Stats (models.Model):
     participation= models.IntegerField(default=0)
     teamwork= models.IntegerField(default=0)
 
-    karma= models.IntegerField(default=0)
+    karma= models.IntegerField(default=100)
 
     def get_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
