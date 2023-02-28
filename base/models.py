@@ -151,7 +151,7 @@ class Review (models.Model):
 
     @property
     def num_upvotes(self):
-        return Vote.objects.filter(review=self.id, value="UP").count()
+        return Vote.objects.filter(review=self, value="UP").count()
     
     @property
     def num_downvotes(self):
