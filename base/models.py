@@ -46,24 +46,6 @@ class Staff (models.Model):
     def name(self):
         return '%s %s %s' % (self.prefix, self.user.first_name, self.user.last_name)
 
-# Stats Model
-
-class Stats (models.Model):
-    id= models.IntegerField(primary_key=True)
-    leadership= models.IntegerField(default=0)
-    respect= models.IntegerField(default=0)
-    punctuality= models.IntegerField(default=0)
-    participation= models.IntegerField(default=0)
-    teamwork= models.IntegerField(default=0)
-
-    #karma= models.IntegerField(default=100)
-
-    def get_stats(self):
-        return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
-    
-    @property
-    def total_stats(self):
-        return (self.leadership + self.respect + self.punctuality + self.participation + self.teamwork)
 
 # Student Model
 
@@ -74,8 +56,7 @@ class Student (models.Model):
     bio= models.TextField(max_length=500, null=True)
     lectured_by= models.ManyToManyField(Staff)
     user= models.OneToOneField(User, on_delete=models.CASCADE)
-    stats= models.OneToOneField(Stats, on_delete=models.CASCADE, null=True)
-
+    
     @property
     def name(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
@@ -93,6 +74,34 @@ class Student (models.Model):
         for review in reviews:
             karma += review.karma
         return karma
+
+    @classmethod
+    def create_stats(cls, self):
+        stats=cls(student=self)
+        return stats
+
+    def save (self, *args, **kwargs):   #NOT DOING WHAT I WANT
+        super().save(*args, **kwargs)  # Call the "real" save() method
+        self.create_stats(cls) #create stats record before student record
+        
+
+# Stats Model
+
+class Stats (models.Model):
+    id= models.IntegerField(primary_key=True)
+    leadership= models.IntegerField(default=0)
+    respect= models.IntegerField(default=0)
+    punctuality= models.IntegerField(default=0)
+    participation= models.IntegerField(default=0)
+    teamwork= models.IntegerField(default=0)
+    student= models.OneToOneField(Student, on_delete=models.CASCADE, null=True)
+
+    def get_stats(self):
+        return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
+    
+    @property
+    def total_stats(self):
+        return (self.leadership + self.respect + self.punctuality + self.participation + self.teamwork)
 
 
 # Review Model
@@ -121,7 +130,7 @@ class Review (models.Model):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
 
     def update_stats(self):
-        student= Student.objects.get(id=self.student.id)
+        student=Student.objects.get(id=student.id)
         stats= Stats.objects.get(id=student.stats.id)
         stats.leadership = F('leadership') + self.leadership    #add new stats values to stats model
         stats.respect = F('respect') + self.respect
