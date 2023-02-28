@@ -16,8 +16,6 @@ class User (AbstractUser):
     first_name=models.CharField(null=False, max_length=50)
     last_name=models.CharField(null=False, max_length=100)
 
-    #other fields e.g. firstname, lastname are included by default as part of AbstractUser
-
     USERNAME_FIELD = 'email'    #lets user log in with email instead of username
     REQUIRED_FIELDS = []
 
