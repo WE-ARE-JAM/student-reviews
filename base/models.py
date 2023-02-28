@@ -159,7 +159,7 @@ class Review (models.Model):
     
     @property
     def karma(self):
-        if (is_good==True):
+        if (self.is_good==True):
             karma= (self.num_upvotes*10) - (self.num_downvotes*10)
             return karma
         else:
