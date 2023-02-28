@@ -58,11 +58,14 @@ class Stats (models.Model):
     participation= models.IntegerField(default=0)
     teamwork= models.IntegerField(default=0)
 
-    karma= models.IntegerField(default=100)
+    #karma= models.IntegerField(default=100)
 
     def get_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
-
+    
+    @property
+    def total_stats(self):
+        return (self.leadership + self.respect + self.punctuality + self.participation + self.teamwork)
 
 # Student Model
 
@@ -84,6 +87,14 @@ class Student (models.Model):
 
     def get_lecturers(self):
         return self.lectured_by.all()
+    
+    @property 
+    def karma(self):
+        reviews= Review.objects.filter(student=self.id)
+        karma=100   #initial karma value is 100
+        for review in reviews:
+            karma += review.karma
+        return karma
 
 
 # Review Model
@@ -121,6 +132,10 @@ class Review (models.Model):
         stats.teamwork = F('teamwork') + self.teamwork
         stats.save()
 
+    def save (self, *args, **kwargs):
+        super().save(*args, **kwargs)  # Call the "real" save() method
+        self.update_stats() #immediately update student's stats when a review is saved
+
     @property
     def num_upvotes(self):
         return Vote.objects.filter(review=self.id, value="UP").count()
@@ -131,8 +146,12 @@ class Review (models.Model):
     
     @property
     def karma(self):
-        return
-
+        if (is_good):
+            karma= (self.num_upvotes*10) - (self.num_downvotes*10)
+            return karma
+        else:
+            karma= (self.num_downvotes*10) - (self.num_upvotes*10)
+            return karma
 
 
 # Vote Model
