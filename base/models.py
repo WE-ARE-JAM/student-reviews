@@ -131,7 +131,7 @@ class Review (models.Model):
 
     def update_stats(self):
         #student=Student.objects.get(id=student.id)
-        stats= Stats.objects.get(id=student.stats.id)
+        stats= Stats.objects.get(id=self.student.stats.id)
         stats.leadership = F('leadership') + self.leadership    #add new stats values to stats model
         stats.respect = F('respect') + self.respect
         stats.punctuality= F('punctuality') + self.punctuality
