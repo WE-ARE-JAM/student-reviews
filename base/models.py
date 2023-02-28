@@ -19,7 +19,6 @@ class User (AbstractUser):
     USERNAME_FIELD = 'email'    #lets user log in with email instead of username
     REQUIRED_FIELDS = []
 
-
 # Staff Model
 
 class Staff (models.Model):
