@@ -19,6 +19,13 @@ class User (AbstractUser):
     USERNAME_FIELD = 'email'    #lets user log in with email instead of username
     REQUIRED_FIELDS = []
 
+    @classmethod
+    def create_user(cls, access, email, first_name, last_name):
+        user= cls(access=self.access, email=self.email, first_name=self.first_name, lastname=self.lastname ,is_good=self.is_good)
+        user.save()
+        return user
+
+
 # Staff Model
 
 class Staff (models.Model):
