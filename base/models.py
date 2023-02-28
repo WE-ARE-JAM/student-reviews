@@ -176,6 +176,13 @@ class Vote (models.Model):
 
     def __str__(self):
         return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
+    
+    @classmethod
+    def create(cls, staff, review, value):  #come back and add logic for removing vote/voting twice
+        vote= cls(staff=staff, review=review, value=value)
+        return vote
+        
+
 
 # Staff Inbox
 
