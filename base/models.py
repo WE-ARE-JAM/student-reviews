@@ -142,12 +142,12 @@ class Review (models.Model):
     @classmethod
     def create(cls, staff, student, text, is_good):
         review= cls(staff=staff, student=student, text=text, is_good=is_good)
-        review.update_stats()
+        #review.update_stats() #NOT WORKING SO REMOVE FOR NOW
         return review
 
     def save (self, *args, **kwargs):
         super().save(*args, **kwargs)  # Call the "real" save() method
-        self.update_stats() #immediately update student's stats when a review is saved
+       # self.update_stats() #immediately update student's stats when a review is saved #NOT WORKING SO REMOVE FOR NOW
 
     @property
     def num_upvotes(self):
