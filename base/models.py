@@ -11,19 +11,13 @@ class User (AbstractUser):
     )
 
     access=models.CharField(max_length=7, choices=ACCESS_TYPE, default="STAFF")
-    email = models.EmailField(unique=True, null=True)
+    username = models.EmailField(unique=True, null=True) #email
     avatar = models.ImageField(null=True, default="avatar.svg") #python -m pip install pillow
     first_name=models.CharField(null=False, max_length=50)
     last_name=models.CharField(null=False, max_length=100)
 
-    USERNAME_FIELD = 'email'    #lets user log in with email instead of username
+    USERNAME_FIELD = 'username'    #lets user log in with email instead of username
     REQUIRED_FIELDS = []
-
-    @classmethod
-    def create_user(cls, access, email, first_name, last_name):
-        user= cls(access=self.access, email=self.email, first_name=self.first_name, lastname=self.lastname ,is_good=self.is_good)
-        user.save()
-        return user
 
 
 # Staff Model
