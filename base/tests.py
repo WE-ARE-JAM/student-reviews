@@ -4,3 +4,4 @@ from base.models import User
 
 class CreateUserTestCase (TestCase):
     
+    
