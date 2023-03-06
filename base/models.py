@@ -1,71 +1,50 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 
-# User Model
+# School Model
 
-class User (AbstractUser):
-    ACCESS_TYPE= (
-        ('STAFF', 'Staff'),
-        ('STUDENT', 'Student')
-    )
+class School (models.Model):
+    name= models.CharField(max_length=200, null=False)
 
-    access=models.CharField(max_length=7, choices=ACCESS_TYPE, default="STAFF")
-    username = models.EmailField(unique=True, null=False) #email
-    avatar = models.ImageField(null=True, default="avatar.svg") #python -m pip install pillow
-    first_name=models.CharField(null=False, max_length=50)
-    last_name=models.CharField(null=False, max_length=100)
-
-    USERNAME_FIELD = 'username'    #lets user log in with email instead of username
-    REQUIRED_FIELDS = []
+    def __str__(self):
+        return 'name: %s' % (self.name)
 
 
 # Staff Model
 
 class Staff (models.Model):
-
-    PREFIX= (
-        ('Prof.', 'Prof.'),
-        ('Dr.', 'Dr.'),
-        ('Mrs.', 'Mrs.'),
-        ('Ms.', 'Mrs.'),
-        ('Mr.', 'Mr.'),
-        ('Mx.', 'Mx.')  #gender neutral prefix
-    )
-
-    id= models.IntegerField(primary_key=True, unique=True)
-    faculty= models.CharField(max_length=100, null=True)
-    department= models.CharField(max_length=100, null=True)
-    prefix= models.CharField(max_length=5, choices=PREFIX, default="Mx.")
+    profile_pic = models.ImageField(null=True, default="avatar.svg")
     user= models.OneToOneField(User, on_delete=models.CASCADE)
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s : %s : %s' % (self.faculty, self.department, self.name)
+        return '%s : %s' % (self.user.name, self.school.name)
 
     @property
     def name(self):
-        return '%s %s %s' % (self.prefix, self.user.first_name, self.user.last_name)
+        return '%s %s' % (self.user.first_name, self.user.last_name)
+    
+    @property
+    def get_id(self):
+        return self.user.id
 
 
 # Student Model
 
 class Student (models.Model):
-    id= models.IntegerField(primary_key=True, unique=True)
-    faculty= models.CharField(max_length=100, null=False)
-    department= models.CharField(max_length=100, null=False)
-    bio= models.TextField(max_length=500, null=True)
-    lectured_by= models.ManyToManyField(Staff)
-    user= models.OneToOneField(User, on_delete=models.CASCADE)
+    name= models.CharField(max_length=100, null=False)
+    active= models.BooleanField(default=True)
+    profile_pic = models.ImageField(null=True, default="avatar.svg")
+    karma = models.IntegerField(default=100)
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
     
     @property
     def name(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
     
     def __str__(self):
-        return '%s : %s : %s : %s' % (self.name, self.faculty, self.department, self.bio)
-
-    def get_lecturers(self):
-        return self.lectured_by.all()
+        return '%s : %s : %s' % (self.name, self.school.name, self.karma)
     
     @property 
     def karma(self):
@@ -75,26 +54,37 @@ class Student (models.Model):
             karma += review.karma
         return karma
 
-   # @classmethod
-    #def create_stats(cls, self):
-    #    stats=cls(student=self)
-    #    return stats
 
-    #def save (self, *args, **kwargs):   #NOT DOING WHAT I WANT
-    #    super().save(*args, **kwargs)  # Call the "real" save() method
-    #    self.create_stats(cls) #create stats record before student record
-        
+# Subject Model
 
-# Stats Model
+class Subject(models.Model):
 
-class Stats (models.Model):
-    id= models.IntegerField(primary_key=True)
+  name= models.CharField(max_length=100, null=False)
+  staff= models.ForeignKey(Staff, on_delete=models.CASCADE) 
+
+  def __str__(self):
+        return '%s : %s' % (self.name, self.staff.name)
+
+
+# Studset Model
+
+class Studset (models.Model):
+    subject= models.ForeignKey(Staff, on_delete=models.CASCADE) 
+    student= models.ForeignKey(Student, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s : %s' % (self.subject.name, self.staff.student.name)
+
+
+# Endorsement Model
+
+class Endorsement (models.Model):
     leadership= models.IntegerField(default=0)
     respect= models.IntegerField(default=0)
     punctuality= models.IntegerField(default=0)
     participation= models.IntegerField(default=0)
     teamwork= models.IntegerField(default=0)
-    student= models.OneToOneField(Student, on_delete=models.CASCADE, null=True)
+    student= models.ForeignKey(Student, on_delete=models.CASCADE)
 
     def get_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
@@ -107,7 +97,6 @@ class Stats (models.Model):
 # Review Model
 
 class Review (models.Model):
-    id= models.IntegerField(primary_key=True)
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
     text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
@@ -117,38 +106,15 @@ class Review (models.Model):
     deleted= models.BooleanField(default=False)
 
     #stats
-    leadership= models.IntegerField(default=0)
-    respect= models.IntegerField(default=0)
-    punctuality= models.IntegerField(default=0)
-    participation= models.IntegerField(default=0)
-    teamwork= models.IntegerField(default=0)
+    #leadership= models.IntegerField(default=0)  # Remove these to make writing a review faster??
+    #respect= models.IntegerField(default=0)
+    #punctuality= models.IntegerField(default=0)
+    #participation= models.IntegerField(default=0)
+    #teamwork= models.IntegerField(default=0)
 
     def __str__(self):
-        return 'staff: %s student: %s text: %s' % (self.staff.name, self.student.name, self.text)
-
-    def get_review_stats(self):
-        return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
-
-    def update_stats(self):
-        #student=Student.objects.get(id=student.id)
-        stats= Stats.objects.get(id=self.student.stats.id)
-        stats.leadership = F('leadership') + self.leadership    #add new stats values to stats model
-        stats.respect = F('respect') + self.respect
-        stats.punctuality= F('punctuality') + self.punctuality
-        stats.participation = F('participation') + self.participation
-        stats.teamwork = F('teamwork') + self.teamwork
-        stats.save()
-    
-   # @classmethod
-   # def create(cls, staff, student, text, is_good):
-    #    review= cls(staff=staff, student=student, text=text, is_good=is_good)
-        #review.update_stats() #NOT WORKING SO REMOVE FOR NOW
-    #    return review
-
-   # def save (self, *args, **kwargs):
-    #    super().save(*args, **kwargs)  # Call the "real" save() method
-       # self.update_stats() #immediately update student's stats when a review is saved #NOT WORKING SO REMOVE FOR NOW
-
+        return 'staff: %s student: %s text: %s' % (self.staff.name, self.student.name, self.text)    
+ 
     @property
     def num_upvotes(self):
         return Vote.objects.filter(review=self, value="UP").count()
@@ -175,7 +141,6 @@ class Vote (models.Model):
         ("DOWN", "Downvote")
     )
 
-    id=models.IntegerField(primary_key=True)
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE)
     review= models.ForeignKey(Review, on_delete= models.CASCADE)
     time= models.DateTimeField(auto_now_add=True)
@@ -183,25 +148,15 @@ class Vote (models.Model):
 
     def __str__(self):
         return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
-    
-   # @classmethod
-   # def create(cls, staff, review, value):  #come back and add logic for removing vote/voting twice
-     #   vote= cls(staff=staff, review=review, value=value)
-     #   return vote
         
-
 
 # Staff Inbox
 
 class Staff_Inbox (models.Model):
-    id= models.IntegerField(primary_key=True)
     staff= models.ForeignKey(Staff, on_delete=models.CASCADE)
     message= models.TextField(max_length=50, null=False)
 
-class Student_Inbox (models.Model):
-    id= models.IntegerField(primary_key=True)
-    student= models.ForeignKey(Student, on_delete=models.CASCADE)
-    message= models.TextField(max_length=50, null=False)
-
+    def __str__(self):
+        return 'staff: %s message: %s' % (self.staff, self.message)
 
 
