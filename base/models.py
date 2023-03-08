@@ -10,6 +10,14 @@ class School (models.Model):
     def __str__(self):
         return 'name: %s' % (self.name)
 
+# Admin Model
+
+class Admin (models.Model):
+    user= models.OneToOneField(User, on_delete=models.CASCADE)
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return '%s : %s' % (self.user.name, self.school.name)
 
 # Staff Model
 
@@ -24,10 +32,6 @@ class Staff (models.Model):
     @property
     def name(self):
         return '%s %s' % (self.user.first_name, self.user.last_name)
-    
-    @property
-    def get_id(self):
-        return self.user.id
 
 
 # Student Model
@@ -48,7 +52,7 @@ class Student (models.Model):
     
     @property 
     def karma(self):
-        reviews= Review.objects.filter(student=self.id)
+        reviews= Review.objects.filter(student=self.pk)
         karma=100   #initial karma value is 100
         for review in reviews:
             karma += review.karma
@@ -58,7 +62,6 @@ class Student (models.Model):
 # Subject Model
 
 class Subject(models.Model):
-
   name= models.CharField(max_length=100, null=False)
   staff= models.ForeignKey(Staff, on_delete=models.CASCADE) 
 
@@ -104,13 +107,6 @@ class Review (models.Model):
     created= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
     deleted= models.BooleanField(default=False)
-
-    #stats
-    #leadership= models.IntegerField(default=0)  # Remove these to make writing a review faster??
-    #respect= models.IntegerField(default=0)
-    #punctuality= models.IntegerField(default=0)
-    #participation= models.IntegerField(default=0)
-    #teamwork= models.IntegerField(default=0)
 
     def __str__(self):
         return 'staff: %s student: %s text: %s' % (self.staff.name, self.student.name, self.text)    
