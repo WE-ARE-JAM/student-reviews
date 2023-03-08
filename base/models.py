@@ -44,8 +44,8 @@ class Student (models.Model):
     
     @property 
     def karma(self):
-        reviews= Review.objects.filter(student.pk=self.pk)
-        ends= Endorsement.objects.filter(student.pk= self.pk)
+        reviews= Review.objects.filter(student.pk==self.pk)
+        ends= Endorsement.objects.filter(student.pk==self.pk)
         karma=100   #initial karma value is 100
         if reviews:
             for review in reviews:
@@ -91,11 +91,11 @@ class Review (models.Model):
  
     @property
     def num_upvotes(self):
-        return Vote.objects.filter(review.pk=self.pk, value="UP").count()
+        return Vote.objects.filter(review.pk==self.pk, value="UP").count()
     
     @property
     def num_downvotes(self):
-        return Vote.objects.filter(review.pk=self.pk, value="DOWN").count()
+        return Vote.objects.filter(review.pk==self.pk, value="DOWN").count()
     
     @property
     def karma(self):
