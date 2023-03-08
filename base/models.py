@@ -30,32 +30,6 @@ class Staff (models.Model):
         return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
 
-# Student Model
-
-class Student (models.Model):
-    name= models.CharField(max_length=100, null=False)
-    active= models.BooleanField(default=True)
-    profile_pic = models.ImageField(null=True, default="avatar.svg")
-    karma = models.IntegerField(default=100)
-    school= models.ForeignKey(School,on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return '%s : %s : %s' % (self.name, self.school.name, self.karma)
-    
-    @property 
-    def karma(self):
-        reviews= Review.objects.filter(student.pk==self.pk)
-        ends= Endorsement.objects.filter(student.pk==self.pk)
-        karma=100   #initial karma value is 100
-        if reviews:
-            for review in reviews:
-                karma += review.karma
-        if ends:
-            for end in ends:
-                karma += end.total_stats
-        return karma
-
-
 # Endorsement Model
 
 class Endorsement (models.Model):
@@ -75,6 +49,23 @@ class Endorsement (models.Model):
         return (self.leadership + self.respect + self.punctuality + self.participation + self.teamwork)
 
 
+# Vote Model
+
+class Vote (models.Model):
+    VOTE_TYPE= (
+        ("UP", "Upvote"),
+        ("DOWN", "Downvote")
+    )
+
+    staff= models.ForeignKey(Staff, on_delete= models.CASCADE)
+    review= models.ForeignKey(Review, on_delete= models.CASCADE)
+    time= models.DateTimeField(auto_now_add=True)
+    value= models.CharField(choices=VOTE_TYPE, max_length=4)
+
+    def __str__(self):
+        return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
+
+
 # Review Model
 
 class Review (models.Model):
@@ -91,11 +82,11 @@ class Review (models.Model):
  
     @property
     def num_upvotes(self):
-        return Vote.objects.filter(review.pk==self.pk, value="UP").count()
+        return Vote.objects.filter(review=self, value="UP").count()
     
     @property
     def num_downvotes(self):
-        return Vote.objects.filter(review.pk==self.pk, value="DOWN").count()
+        return Vote.objects.filter(review=self, value="DOWN").count()
     
     @property
     def karma(self):
@@ -107,21 +98,30 @@ class Review (models.Model):
             return karma
 
 
-# Vote Model
+# Student Model
 
-class Vote (models.Model):
-    VOTE_TYPE= (
-        ("UP", "Upvote"),
-        ("DOWN", "Downvote")
-    )
-
-    staff= models.ForeignKey(Staff, on_delete= models.CASCADE)
-    review= models.ForeignKey(Review, on_delete= models.CASCADE)
-    time= models.DateTimeField(auto_now_add=True)
-    value= models.CharField(choices=VOTE_TYPE, max_length=4)
-
+class Student (models.Model):
+    name= models.CharField(max_length=100, null=False)
+    active= models.BooleanField(default=True)
+    profile_pic = models.ImageField(null=True, default="avatar.svg")
+    karma = models.IntegerField(default=100)
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
+    
     def __str__(self):
-        return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
+        return '%s : %s : %s' % (self.name, self.school.name, self.karma)
+    
+    @property 
+    def karma(self):
+        reviews= Review.objects.filter(student=self)
+        ends= Endorsement.objects.filter(student=self)
+        karma=100   #initial karma value is 100
+        if reviews:
+            for review in reviews:
+                karma += review.karma
+        if ends:
+            for end in ends:
+                karma += end.total_stats
+        return karma
         
 
 # Staff Inbox
