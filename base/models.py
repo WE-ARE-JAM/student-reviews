@@ -17,7 +17,7 @@ class Admin (models.Model):
     school= models.ForeignKey(School,on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s : %s' % (self.user.name, self.school.name)
+        return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
 # Staff Model
 
@@ -27,11 +27,7 @@ class Staff (models.Model):
     school= models.ForeignKey(School,on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s : %s' % (self.user.name, self.school.name)
-
-    @property
-    def name(self):
-        return '%s %s' % (self.user.first_name, self.user.last_name)
+        return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
 
 # Student Model
@@ -43,40 +39,21 @@ class Student (models.Model):
     karma = models.IntegerField(default=100)
     school= models.ForeignKey(School,on_delete=models.CASCADE)
     
-    @property
-    def name(self):
-        return '%s %s' % (self.user.first_name, self.user.last_name)
-    
     def __str__(self):
         return '%s : %s : %s' % (self.name, self.school.name, self.karma)
     
     @property 
     def karma(self):
-        reviews= Review.objects.filter(student=self.pk)
+        reviews= Review.objects.filter(student.pk=self.pk)
+        ends= Endorsement.objects.filter(student.pk= self.pk)
         karma=100   #initial karma value is 100
-        for review in reviews:
-            karma += review.karma
+        if reviews:
+            for review in reviews:
+                karma += review.karma
+        if ends:
+            for end in ends:
+                karma += end.total_stats
         return karma
-
-
-# Subject Model
-
-class Subject(models.Model):
-  name= models.CharField(max_length=100, null=False)
-  staff= models.ForeignKey(Staff, on_delete=models.CASCADE) 
-
-  def __str__(self):
-        return '%s : %s' % (self.name, self.staff.name)
-
-
-# Studset Model
-
-class Studset (models.Model):
-    subject= models.ForeignKey(Staff, on_delete=models.CASCADE) 
-    student= models.ForeignKey(Student, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return '%s : %s' % (self.subject.name, self.staff.student.name)
 
 
 # Endorsement Model
@@ -88,6 +65,7 @@ class Endorsement (models.Model):
     participation= models.IntegerField(default=0)
     teamwork= models.IntegerField(default=0)
     student= models.ForeignKey(Student, on_delete=models.CASCADE)
+    staff= models.ForeignKey(Staff, on_delete=models.CASCADE)
 
     def get_stats(self):
         return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
@@ -113,19 +91,19 @@ class Review (models.Model):
  
     @property
     def num_upvotes(self):
-        return Vote.objects.filter(review=self, value="UP").count()
+        return Vote.objects.filter(review.pk=self.pk, value="UP").count()
     
     @property
     def num_downvotes(self):
-        return Vote.objects.filter(review=self.id, value="DOWN").count()
+        return Vote.objects.filter(review.pk=self.pk, value="DOWN").count()
     
     @property
     def karma(self):
         if (self.is_good==True):
-            karma= (self.num_upvotes*10) - (self.num_downvotes*10)
+            karma= 50 + (self.num_upvotes*10) - (self.num_downvotes*10)
             return karma
         else:
-            karma= (self.num_downvotes*10) - (self.num_upvotes*10)
+            karma= (self.num_downvotes*10) - (self.num_upvotes*10) -50
             return karma
 
 
