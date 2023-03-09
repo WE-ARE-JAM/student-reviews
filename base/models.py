@@ -29,24 +29,47 @@ class Staff (models.Model):
     def __str__(self):
         return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
+# Student Model
+#need to create a Karma object for each student
+#can access the karma score by: [student object].karma.score
+
+class Student (models.Model):
+    name= models.CharField(max_length=100, null=False)
+    active= models.BooleanField(default=True)
+    profile_pic = models.ImageField(null=True, default="avatar.svg")
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return '%s : %s' % (self.name, self.school.name)
+
+# Review Model
+
+class Review (models.Model):
+    staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
+    student= models.ForeignKey(Student, on_delete= models.CASCADE)
+    text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
+    is_good= models.BooleanField(null=False)
+    created= models.DateTimeField(auto_now_add=True)
+    edited= models.BooleanField(default=False)
+    deleted= models.BooleanField(default=False)
+
+    def __str__(self):
+        return 'staff: %s student: %s text: %s' % (self.staff.user.get_full_name(), self.student.name, self.text)    
+
 
 # Endorsement Model
 
-class Endorsement (models.Model):
-    leadership= models.IntegerField(default=0)
-    respect= models.IntegerField(default=0)
-    punctuality= models.IntegerField(default=0)
-    participation= models.IntegerField(default=0)
-    teamwork= models.IntegerField(default=0)
+class Endorsement (models.Model):   #change to boolean
+    leadership= models.BooleanField(default=False)
+    respect= models.BooleanField(default=False)
+    punctuality= models.BooleanField(default=False)
+    participation= models.BooleanField(default=False)
+    teamwork= models.BooleanField(default=False)
     student= models.ForeignKey(Student, on_delete=models.CASCADE)
     staff= models.ForeignKey(Staff, on_delete=models.CASCADE)
 
-    def get_stats(self):
-        return 'leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
-    
-    @property
-    def total_stats(self):
-        return (self.leadership + self.respect + self.punctuality + self.participation + self.teamwork)
+    def __str__(self):
+        return 'staff: %s leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.staff.user.get_full_name(), self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
 
 
 # Vote Model
@@ -65,64 +88,34 @@ class Vote (models.Model):
     def __str__(self):
         return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
 
+# Karma
 
-# Review Model
+class Karma (models.Model):
+    student= models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
 
-class Review (models.Model):
-    staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
-    student= models.ForeignKey(Student, on_delete= models.CASCADE)
-    text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
-    is_good= models.BooleanField(null=False)
-    created= models.DateTimeField(auto_now_add=True)
-    edited= models.BooleanField(default=False)
-    deleted= models.BooleanField(default=False)
-
-    def __str__(self):
-        return 'staff: %s student: %s text: %s' % (self.staff.name, self.student.name, self.text)    
- 
     @property
-    def num_upvotes(self):
-        return Vote.objects.filter(review=self, value="UP").count()
-    
-    @property
-    def num_downvotes(self):
-        return Vote.objects.filter(review=self, value="DOWN").count()
-    
-    @property
-    def karma(self):
-        if (self.is_good==True):
-            karma= 50 + (self.num_upvotes*10) - (self.num_downvotes*10)
-            return karma
-        else:
-            karma= (self.num_downvotes*10) - (self.num_upvotes*10) -50
-            return karma
-
-
-# Student Model
-
-class Student (models.Model):
-    name= models.CharField(max_length=100, null=False)
-    active= models.BooleanField(default=True)
-    profile_pic = models.ImageField(null=True, default="avatar.svg")
-    karma = models.IntegerField(default=100)
-    school= models.ForeignKey(School,on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return '%s : %s : %s' % (self.name, self.school.name, self.karma)
-    
-    @property 
-    def karma(self):
-        reviews= Review.objects.filter(student=self)
-        ends= Endorsement.objects.filter(student=self)
-        karma=100   #initial karma value is 100
-        if reviews:
-            for review in reviews:
-                karma += review.karma
-        if ends:
-            for end in ends:
-                karma += end.total_stats
-        return karma
+    def score(self):
+        karma=100 #default karma score is 100
+        reviews=Review.objects.filter(student=self.student)
+        for review in reviews:
+            num_upvotes= Vote.objects.filter(review=review, value="UP").count()
+            num_downvotes= Vote.objects.filter(review=review, value="DOWN").count()
+            if review.is_good==True:
+                karma= karma + 50 + (num_upvotes*5) - (num_downvotes*5)
+            else:
+                karma= karma - 50 - (num_upvotes*5) + (num_downvotes*5)
         
+        lead= Endorsement.objects.filter(student=self.student, leadership=True).count()
+        respect= Endorsement.objects.filter(student=self.student, respect=True).count()
+        punc= Endorsement.objects.filter(student=self.student, punctuality=True).count()
+        part= Endorsement.objects.filter(student=self.student, participation=True).count()
+        team= Endorsement.objects.filter(student=self.student, teamwork=True).count()
+        karma= karma + (lead*10) + (respect*10) + (punc*10) + (part*10) + (team*10)
+        return karma
+    
+    def __str__(self):
+        return 'student: %s score: %s' % (self.student.name,self.score)
+
 
 # Staff Inbox
 
@@ -132,5 +125,4 @@ class Staff_Inbox (models.Model):
 
     def __str__(self):
         return 'staff: %s message: %s' % (self.staff, self.message)
-
 
