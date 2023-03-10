@@ -13,7 +13,7 @@ def register(request):
             return redirect('login')
     else:
         form = StaffRegistrationForm()
-    return render(request, 'templates/register.html', {'form': form})
+    return render(request, 'templates/register.html', {'register_form': form})
 
 # def register(request):
 #     if request.method == 'POST':
