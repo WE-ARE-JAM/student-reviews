@@ -28,6 +28,9 @@ class Staff (models.Model):
     @property
     def get_id(self):
         return self.user.id
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 
 # Student Model
