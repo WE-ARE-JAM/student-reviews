@@ -4,11 +4,11 @@ from django.core.validators import MinLengthValidator
 
 # School Model
 
-class School (models.Model):
-    name= models.CharField(max_length=200, null=False)
+# class School (models.Model):
+#     name= models.CharField(max_length=200, null=False)
 
-    def __str__(self):
-        return 'name: %s' % (self.name)
+#     def __str__(self):
+#         return 'name: %s' % (self.name)
 
 
 # Staff Model
@@ -16,7 +16,7 @@ class School (models.Model):
 class Staff (models.Model):
     profile_pic = models.ImageField(null=True, default="avatar.svg")
     user= models.OneToOneField(User, on_delete=models.CASCADE)
-    school= models.ForeignKey(School,on_delete=models.CASCADE)
+    school= models.CharField(max_length=200, null=False)
 
     def __str__(self):
         return '%s : %s' % (self.user.name, self.school.name)
@@ -40,7 +40,7 @@ class Student (models.Model):
     active= models.BooleanField(default=True)
     profile_pic = models.ImageField(null=True, default="avatar.svg")
     karma = models.IntegerField(default=100)
-    school= models.ForeignKey(School,on_delete=models.CASCADE)
+    school= models.CharField(max_length=200, null=False)
     
     @property
     def name(self):
