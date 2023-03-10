@@ -10,7 +10,9 @@ def register(request):
         form = StaffRegistrationForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Registration successful!')
             return redirect('login')
+        messages.error(request, 'Registration unsuccessful.')
     else:
         form = StaffRegistrationForm()
     return render(request, 'register.html', {'register_form': form})
