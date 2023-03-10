@@ -30,7 +30,7 @@ class Staff (models.Model):
         return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
 # Student Model
-#need to create a Karma object for each student
+#A Karma object must be created each time a student is created
 #can access the karma score by: [student object].karma.score
 
 class Student (models.Model):
@@ -43,6 +43,8 @@ class Student (models.Model):
         return '%s : %s' % (self.name, self.school.name)
 
 # Review Model
+# A Stats object must be created each time a review is created
+#access total upvotes/downvotes by  [review object].stats.upvotes or [review object].stats.downvotes
 
 class Review (models.Model):
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
@@ -115,6 +117,25 @@ class Karma (models.Model):
     
     def __str__(self):
         return 'student: %s score: %s' % (self.student.name,self.score)
+
+#Stats : for displaying number of upvotes and downvotes per review
+#must be created each time a review is created
+#call by [review object].stats.upvotes or [review object].stats.downvotes
+class Stats (models.Model):
+    review= models.OneToOneField(Review, on_delete=models.CASCADE, primary_key=True)
+
+    @property
+    def upvotes(self):
+        num_upvotes= Vote.objects.filter(review=self.review, value="UP").count()
+        return num_upvotes
+
+    @property
+    def downvotes(self):
+        num_downvotes= Vote.objects.filter(review=self.review, value="DOWN").count()
+        return num_downvotes
+
+    def __str__(self):
+        return 'upvotes: %s  downvotes: %s' % (self.upvotes, self.downvotes)
 
 
 # Staff Inbox
