@@ -24,3 +24,6 @@ def register(request):
             'staff_reg_form' : staff_reg_form
         }
     return render(request, 'base/templates/register.html', context)
+
+def login(request):
+    return render(request, 'base/templates/login.html')
