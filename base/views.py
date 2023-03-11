@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.forms import AuthenticationForm
 from .forms import StaffRegistrationForm
 
 # Create your views here.
@@ -11,7 +13,7 @@ def register(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Registration successful!')
-            return redirect('login')
+            return redirect('base:login')
         messages.error(request, 'Registration unsuccessful.')
     else:
         form = StaffRegistrationForm()
@@ -38,5 +40,20 @@ def register(request):
 #         }
 #     return render(request, 'base/templates/register.html', context)
 
-def login(request):
-    return render(request, 'login.html')
+def staff_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.info(request, f'You are now logged in as {username}.')
+                return redirect('base:staff-home')
+            else:
+                messages.error(request, 'Invalid username or password.')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    form = AuthenticationForm()
+    return render(request, 'login.html', {'login_form' : form})
