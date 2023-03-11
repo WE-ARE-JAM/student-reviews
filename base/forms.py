@@ -1,10 +1,11 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django_select2.forms import ModelSelect2Widget
 from .models import Staff, School
 
 class StaffRegistrationForm(UserCreationForm):
-    school = forms.ModelChoiceField(queryset=School.objects.all(), required=True)
+    school = forms.ModelChoiceField(queryset=School.objects.all(), widget=ModelSelect2Widget(model=School, search_fields=['name__icontains']), required=True)
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=32, required=True)
     last_name = forms.CharField(max_length=32, required=True)
