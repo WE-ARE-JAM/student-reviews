@@ -50,10 +50,13 @@ def staff_login(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f'You are now logged in as {username}.')
-                return redirect('base:staff-home')
+                return redirect('base:home')
             else:
                 messages.error(request, 'Invalid username or password.')
         else:
             messages.error(request, 'Invalid username or password.')
     form = AuthenticationForm()
     return render(request, 'login.html', {'login_form' : form})
+
+def staff_home(request):
+    return render(request, 'staff-home.html')
