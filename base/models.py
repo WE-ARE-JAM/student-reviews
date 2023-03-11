@@ -4,11 +4,11 @@ from django.core.validators import MinLengthValidator
 
 # School Model
 
-# class School (models.Model):
-#     name= models.CharField(max_length=200, null=False)
+class School (models.Model):
+    name= models.CharField(max_length=200, null=False)
 
-#     def __str__(self):
-#         return 'name: %s' % (self.name)
+    def __str__(self):
+        return '%s' % (self.name)
 
 
 # class User(AbstractUser):
@@ -20,7 +20,7 @@ from django.core.validators import MinLengthValidator
 class Staff (models.Model):
     profile_pic = models.ImageField(null=True, default="avatar.svg")
     user= models.OneToOneField(User, on_delete=models.CASCADE)
-    school= models.CharField(max_length=200, null=False)
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
 
     def __str__(self):
         return '%s : %s' % (self.user.name, self.school.name)
@@ -33,8 +33,8 @@ class Staff (models.Model):
     def get_id(self):
         return self.user.id
     
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
 
 
 # Student Model
@@ -44,7 +44,7 @@ class Student (models.Model):
     active= models.BooleanField(default=True)
     profile_pic = models.ImageField(null=True, default="avatar.svg")
     karma = models.IntegerField(default=100)
-    school= models.CharField(max_length=200, null=False)
+    school= models.ForeignKey(School,on_delete=models.CASCADE)
     
     @property
     def name(self):
