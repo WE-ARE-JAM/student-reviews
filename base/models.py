@@ -8,7 +8,11 @@ class School (models.Model):
     name= models.CharField(max_length=200, null=False)
 
     def __str__(self):
-        return 'name: %s' % (self.name)
+        return '%s' % (self.name)
+
+
+# class User(AbstractUser):
+#     pass
 
 # Admin Model
 
@@ -28,6 +32,7 @@ class Staff (models.Model):
 
     def __str__(self):
         return '%s : %s' % (self.user.get_full_name(), self.school.name)
+
 
 # Student Model
 #A Karma object must be created each time a student is created
