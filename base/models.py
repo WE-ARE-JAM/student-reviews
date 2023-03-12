@@ -23,7 +23,7 @@ class Staff (models.Model):
     school= models.ForeignKey(School,on_delete=models.CASCADE)
 
     def __str__(self):
-        return '%s : %s' % (self.user.name, self.school.name)
+        return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
     @property
     def name(self):
