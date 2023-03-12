@@ -1,13 +1,15 @@
 from django.contrib import admin
-from .models import User, School, Student, Staff, Review, Vote, Staff_Inbox, Endorsement
+from .models import School, Admin, Student, Staff, Review, Vote, Staff_Inbox, Endorsement, Karma, Stats
+
 # Register your models here.
 
-admin.site.unregister(User)
-admin.site.register(User)
 admin.site.register(School)
+admin.site.register(Admin)
 admin.site.register(Student)
 admin.site.register(Staff)
 admin.site.register(Review)
 admin.site.register(Vote)
 admin.site.register(Staff_Inbox)
 admin.site.register(Endorsement)
+admin.site.register(Karma)
+admin.site.register(Stats)
