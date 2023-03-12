@@ -2,8 +2,6 @@
 
 {% block title %}Registration{% endblock %}
 
-{% load static %}
-
 {% block content %}
 
 {% load crispy_forms_tags %}
@@ -17,19 +15,5 @@
     </form>
     <p class="text-center">If you already have an account, <a href="/login">login</a> instead.</p>
 </div>
-
-<!-- Load django_select2 CSS and JavaScript files -->
-<link rel="stylesheet" href="{% static 'django_select2/css/select2.css' %}">
-<script src="{% static 'django_select2/js/select2.full.min.js' %}"></script>
-
-<!-- Initialize select2 widget -->
-<script>
-  $(document).ready(function() {
-    $('#id_school').select2({
-      placeholder: 'Select a school',
-      minimumInputLength: 1,
-    });
-  });
-</script>
 
 {% endblock %}
