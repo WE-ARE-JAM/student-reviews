@@ -1,7 +1,5 @@
 {% extends "header.html" %}
 
-{% block title %}Registration{% endblock %}
-
 {% block content %}
 
 {% load crispy_forms_tags %}
@@ -13,7 +11,7 @@
         {{ register_form|crispy }}
         <button class="btn btn-primary" type="submit">Register</button>
     </form>
-    <p class="text-center">If you already have an account, <a href="/login">login</a> instead.</p>
+    {% block login_prompt %}{% endblock %}
 </div>
 
 {% endblock %}

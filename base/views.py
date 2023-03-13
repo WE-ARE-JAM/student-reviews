@@ -1,13 +1,38 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import StaffRegistrationForm
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import AdminRegistrationForm, StaffRegistrationForm
+
+# Callables for user_passes_test()
+
+def is_admin(user):
+    return user.groups.filter(name='ADMIN').exists()
+
+def is_staff(user):
+    return user.groups.filter(name='STAFF').exists()
+
+
 
 # Create your views here.
 
 
-def register(request):
+@user_passes_test(lambda u: u.is_superuser)
+def admin_register(request):
+    if request.method == 'POST':
+        form = AdminRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registration successful!')
+            return render(request, 'register.html', {'register_form': form})
+        messages.error(request, 'Registration unsuccessful.')
+    else:
+        form = AdminRegistrationForm()
+    return render(request, 'admin-register.html', {'register_form': form})
+
+
+def staff_register(request):
     if request.method == 'POST':
         form = StaffRegistrationForm(request.POST)
         if form.is_valid():
@@ -17,7 +42,7 @@ def register(request):
         messages.error(request, 'Registration unsuccessful.')
     else:
         form = StaffRegistrationForm()
-    return render(request, 'register.html', {'register_form': form})
+    return render(request, 'staff-register.html', {'register_form': form})
 
 # def register(request):
 #     if request.method == 'POST':
@@ -40,7 +65,7 @@ def register(request):
 #         }
 #     return render(request, 'base/templates/register.html', context)
 
-def staff_login(request):
+def login_request(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -50,7 +75,12 @@ def staff_login(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f'You are now logged in as {username}.')
-                return redirect('base:home')
+                if user.is_superuser:
+                    return redirect('base:superuser-home')
+                if is_admin(user):
+                    return redirect('base:admin-home')
+                if is_staff(user):
+                    return redirect('base:staff-home')
             else:
                 messages.error(request, 'Invalid username or password.')
         else:
@@ -58,5 +88,13 @@ def staff_login(request):
     form = AuthenticationForm()
     return render(request, 'login.html', {'login_form' : form})
 
+def logout_request(request):
+    logout(request)
+    messages.info(request, 'You have successfully logged out.')
+    return redirect('base:login')
+
 def staff_home(request):
     return render(request, 'staff-home.html')
+
+def admin_home(request):
+    return render(request, 'admin-home.html')
