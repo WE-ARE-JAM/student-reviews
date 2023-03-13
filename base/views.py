@@ -2,9 +2,22 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import StaffRegistrationForm
+from .forms import AdminRegistrationForm, StaffRegistrationForm
 
 # Create your views here.
+
+
+def admin_register(request):
+    if request.method == 'POST':
+        form = AdminRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registration successful!')
+            return render(request, 'register.html', {'register_form': form})
+        messages.error(request, 'Registration unsuccessful.')
+    else:
+        form = AdminRegistrationForm()
+    return render(request, 'register.html', {'register_form': form})
 
 
 def staff_register(request):
@@ -40,7 +53,7 @@ def staff_register(request):
 #         }
 #     return render(request, 'base/templates/register.html', context)
 
-def staff_login(request):
+def login_request(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
