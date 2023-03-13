@@ -2,7 +2,18 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm
+
+# Callables for user_passes_test()
+
+def is_admin(user):
+    return user.groups.filter(name='ADMIN').exists()
+
+def is_staff(user):
+    return user.groups.filter(name='STAFF').exists()
+
+
 
 # Create your views here.
 
