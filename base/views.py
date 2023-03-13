@@ -18,6 +18,7 @@ def is_staff(user):
 # Create your views here.
 
 
+@user_passes_test(lambda u: u.is_superuser)
 def admin_register(request):
     if request.method == 'POST':
         form = AdminRegistrationForm(request.POST)
