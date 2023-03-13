@@ -7,7 +7,7 @@ from .forms import StaffRegistrationForm
 # Create your views here.
 
 
-def register(request):
+def staff_register(request):
     if request.method == 'POST':
         form = StaffRegistrationForm(request.POST)
         if form.is_valid():
