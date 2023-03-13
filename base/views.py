@@ -75,7 +75,12 @@ def login_request(request):
             if user is not None:
                 login(request, user)
                 messages.info(request, f'You are now logged in as {username}.')
-                return redirect('base:home')
+                if user.is_superuser:
+                    return redirect('base:superuser-home')
+                if is_admin(user):
+                    return redirect('base:admin-home')
+                if is_staff(user):
+                    return redirect('base:staff-home')
             else:
                 messages.error(request, 'Invalid username or password.')
         else:
@@ -85,3 +90,6 @@ def login_request(request):
 
 def staff_home(request):
     return render(request, 'staff-home.html')
+
+def admin_home(request):
+    return render(request, 'admin-home.html')
