@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from .models import Staff, School
 
 class StaffRegistrationForm(UserCreationForm):
@@ -20,6 +20,11 @@ class StaffRegistrationForm(UserCreationForm):
             user.save()
         staff = Staff.objects.create(user=user, school=self.cleaned_data['school'])
         staff.save()
+
+        # adding user to STAFF group
+        staff_group, created = Group.objects.get_or_create(name="STAFF")
+        user.groups.add(staff_group)
+        
         return user
 
 # class UserRegisterForm(UserCreationForm):
