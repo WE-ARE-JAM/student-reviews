@@ -29,7 +29,7 @@ def admin_register(request):
         messages.error(request, 'Registration unsuccessful.')
     else:
         form = AdminRegistrationForm()
-    return render(request, 'register.html', {'register_form': form})
+    return render(request, 'admin-register.html', {'register_form': form})
 
 
 def staff_register(request):
@@ -42,7 +42,7 @@ def staff_register(request):
         messages.error(request, 'Registration unsuccessful.')
     else:
         form = StaffRegistrationForm()
-    return render(request, 'register.html', {'register_form': form})
+    return render(request, 'staff-register.html', {'register_form': form})
 
 # def register(request):
 #     if request.method == 'POST':
