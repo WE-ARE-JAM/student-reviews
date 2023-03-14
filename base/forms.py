@@ -52,15 +52,6 @@ class StaffRegistrationForm(UserCreationForm):
 
         return user
 
-# class UserRegisterForm(UserCreationForm):
-#     email = forms.EmailField(required=True)
 
-#     class Meta:
-#         model = User
-#         fields = ['username', 'email', 'password1', 'password2']
-
-
-# class StaffRegisterForm(forms.ModelForm):
-#     class Meta:
-#         model = Staff
-#         fields = ['school']
+class UploadCsvForm(forms.Form):
+    csv_file = forms.FileField(label='Select a CSV file')
