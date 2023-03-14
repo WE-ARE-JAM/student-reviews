@@ -48,7 +48,19 @@ def staff_register(request):
     return render(request, 'staff-register.html', {'register_form': form})
 
 
-def index(request):
+# def index(request):
+#     if request.user.is_authenticated:
+#         if request.user.is_superuser:
+#             return redirect('base:superuser-home')
+#         if is_admin(request.user):
+#             return redirect('base:admin-home')
+#         if is_staff(request.user):
+#             return redirect('base:staff-home')
+#     else:
+#         return redirect('base:login')
+
+
+def login_request(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
             return redirect('base:superuser-home')
@@ -57,48 +69,30 @@ def index(request):
         if is_staff(request.user):
             return redirect('base:staff-home')
     else:
-        return redirect('base:login')
-
-
-def login_request(request):
-    # if request.user.is_authenticated:
-    #     if request.user.is_superuser:
-    #         return render(request, 'admin-register.html')
-    #     if is_admin(request.user):
-    #         return render(request, 'admin-home.html')
-    #     if is_staff(request.user):
-    #         return render(request, 'staff-home.html')
-    # if request.user.is_authenticated:
-    #     if request.user.is_superuser:
-    #         return redirect(reverse('base:superuser-home'))
-    #     if is_admin(request.user):
-    #         return redirect(reverse('base:admin-home'))
-    #     if is_staff(request.user):
-    #         return redirect(reverse('base:staff-home'))
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.info(request, f'You are now logged in as {username}.')
-                if user.is_superuser:
-                    messages.info(request, 'Superuser logged in')
-                    return redirect('base:superuser-home')
-                if is_admin(user):
-                    messages.info(request, 'Admin logged in')
-                    return redirect('base:admin-home')
-                if is_staff(user):
-                    messages.info(request, 'Staff logged in')
-                    return redirect('base:staff-home')
+        if request.method == 'POST':
+            form = AuthenticationForm(request, data=request.POST)
+            if form.is_valid():
+                username = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password')
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    messages.info(request, f'You are now logged in as {username}.')
+                    if user.is_superuser:
+                        messages.info(request, 'Superuser logged in')
+                        return redirect('base:superuser-home')
+                    if is_admin(user):
+                        messages.info(request, 'Admin logged in')
+                        return redirect('base:admin-home')
+                    if is_staff(user):
+                        messages.info(request, 'Staff logged in')
+                        return redirect('base:staff-home')
+                else:
+                    messages.error(request, 'Invalid username or password.')
             else:
                 messages.error(request, 'Invalid username or password.')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    form = AuthenticationForm()
-    return render(request, 'login.html', {'login_form' : form})
+        form = AuthenticationForm()
+        return render(request, 'login.html', {'login_form' : form})
 
 
 def logout_request(request):
