@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
@@ -20,7 +20,8 @@ def is_staff(user):
 # Create your views here.
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@login_required()
+@user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def admin_register(request):
     if request.method == 'POST':
         form = AdminRegistrationForm(request.POST)
@@ -47,14 +48,33 @@ def staff_register(request):
     return render(request, 'staff-register.html', {'register_form': form})
 
 
-def login_request(request):
+def index(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
-            return render(request, 'admin-register.html')
+            return redirect('base:superuser-home')
         if is_admin(request.user):
-            return render(request, 'admin-home.html')
+            return redirect('base:admin-home')
         if is_staff(request.user):
-            return render(request, 'staff-home.html')
+            return redirect('base:staff-home')
+    else:
+        return redirect('base:login')
+
+
+def login_request(request):
+    # if request.user.is_authenticated:
+    #     if request.user.is_superuser:
+    #         return render(request, 'admin-register.html')
+    #     if is_admin(request.user):
+    #         return render(request, 'admin-home.html')
+    #     if is_staff(request.user):
+    #         return render(request, 'staff-home.html')
+    # if request.user.is_authenticated:
+    #     if request.user.is_superuser:
+    #         return redirect(reverse('base:superuser-home'))
+    #     if is_admin(request.user):
+    #         return redirect(reverse('base:admin-home'))
+    #     if is_staff(request.user):
+    #         return redirect(reverse('base:staff-home'))
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -65,10 +85,13 @@ def login_request(request):
                 login(request, user)
                 messages.info(request, f'You are now logged in as {username}.')
                 if user.is_superuser:
+                    messages.info(request, 'Superuser logged in')
                     return redirect('base:superuser-home')
                 if is_admin(user):
+                    messages.info(request, 'Admin logged in')
                     return redirect('base:admin-home')
                 if is_staff(user):
+                    messages.info(request, 'Staff logged in')
                     return redirect('base:staff-home')
             else:
                 messages.error(request, 'Invalid username or password.')
@@ -88,6 +111,8 @@ def staff_home(request):
     return render(request, 'staff-home.html')
 
 
+@login_required()
+@user_passes_test(is_admin, login_url='/unauthorized')
 def admin_home(request):
     form = UploadCsvForm()
     if request.method == 'POST':
@@ -111,3 +136,6 @@ def admin_home(request):
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
     return render(request, 'admin-home.html', {'form': form})
+
+def unauthorized(request):
+    return render(request, 'unauthorized.html')
