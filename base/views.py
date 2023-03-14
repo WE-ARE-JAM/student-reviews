@@ -119,9 +119,10 @@ def admin_home(request):
                 form.add_error('csv_file', 'File is not a CSV')
             else:
                 try:
-                    decoded_file = csv_file.read().decode('utf-8').splitlines()
+                    decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
                     reader = csv.DictReader(decoded_file)
                     for row in reader:
+                        messages.info(request, f"{row}")
                         name = row['name']
                         student = Student.objects.create(name=name, school=admin.school)
                         student.save()
