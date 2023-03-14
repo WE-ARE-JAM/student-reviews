@@ -48,6 +48,13 @@ def staff_register(request):
 
 
 def login_request(request):
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return render(request, 'admin-register.html')
+        if is_admin(request.user):
+            return render(request, 'admin-home.html')
+        if is_staff(request.user):
+            return render(request, 'staff-home.html')
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
