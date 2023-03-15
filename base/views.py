@@ -1,9 +1,11 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import AdminRegistrationForm, StaffRegistrationForm
+from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm
+from .models import Admin, Student
+import csv
 
 # Callables for user_passes_test()
 
@@ -18,7 +20,8 @@ def is_staff(user):
 # Create your views here.
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@login_required()
+@user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def admin_register(request):
     if request.method == 'POST':
         form = AdminRegistrationForm(request.POST)
@@ -44,57 +47,91 @@ def staff_register(request):
         form = StaffRegistrationForm()
     return render(request, 'staff-register.html', {'register_form': form})
 
-# def register(request):
-#     if request.method == 'POST':
-#         form = UserRegisterForm(request.POST)
-#         staff_reg_form = StaffRegisterForm(request.POST)
-#         if form.is_valid() and staff_reg_form.is_valid():
-#             user = form.save()
-#             user.refresh_from_db()
-#             staff_reg_form = StaffRegisterForm(request.POST, instance=user.staff)
-#             staff_reg_form.full_clean()
-#             staff_reg_form.save()
-#             messages.success(request, f'Your account has been successfully created!')
-#             return redirect('login')
+
+# def index(request):
+#     if request.user.is_authenticated:
+#         if request.user.is_superuser:
+#             return redirect('base:superuser-home')
+#         if is_admin(request.user):
+#             return redirect('base:admin-home')
+#         if is_staff(request.user):
+#             return redirect('base:staff-home')
 #     else:
-#         form = UserRegisterForm()
-#         staff_reg_form = StaffRegisterForm()
-#         context = {
-#             'form' : form,
-#             'staff_reg_form' : staff_reg_form
-#         }
-#     return render(request, 'base/templates/register.html', context)
+#         return redirect('base:login')
+
 
 def login_request(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.info(request, f'You are now logged in as {username}.')
-                if user.is_superuser:
-                    return redirect('base:superuser-home')
-                if is_admin(user):
-                    return redirect('base:admin-home')
-                if is_staff(user):
-                    return redirect('base:staff-home')
+    if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return redirect('base:superuser-home')
+        if is_admin(request.user):
+            return redirect('base:admin-home')
+        if is_staff(request.user):
+            return redirect('base:staff-home')
+    else:
+        if request.method == 'POST':
+            form = AuthenticationForm(request, data=request.POST)
+            if form.is_valid():
+                username = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password')
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    messages.info(request, f'You are now logged in as {username}.')
+                    if user.is_superuser:
+                        messages.info(request, 'Superuser logged in')
+                        return redirect('base:superuser-home')
+                    if is_admin(user):
+                        messages.info(request, 'Admin logged in')
+                        return redirect('base:admin-home')
+                    if is_staff(user):
+                        messages.info(request, 'Staff logged in')
+                        return redirect('base:staff-home')
+                else:
+                    messages.error(request, 'Invalid username or password.')
             else:
                 messages.error(request, 'Invalid username or password.')
-        else:
-            messages.error(request, 'Invalid username or password.')
-    form = AuthenticationForm()
-    return render(request, 'login.html', {'login_form' : form})
+        form = AuthenticationForm()
+        return render(request, 'login.html', {'login_form' : form})
+
 
 def logout_request(request):
     logout(request)
     messages.info(request, 'You have successfully logged out.')
     return redirect('base:login')
 
+
 def staff_home(request):
     return render(request, 'staff-home.html')
 
+
+@login_required()
+@user_passes_test(is_admin, login_url='/unauthorized')
 def admin_home(request):
-    return render(request, 'admin-home.html')
+    form = UploadCsvForm()
+    if request.method == 'POST':
+        form = UploadCsvForm(request.POST, request.FILES)
+        if form.is_valid():
+            csv_file = request.FILES['csv_file']
+            current_user = request.user
+            admin = Admin.objects.get(user=current_user)
+            if not csv_file.name.endswith('.csv'):
+                form.add_error('csv_file', 'File is not a CSV')
+            else:
+                try:
+                    decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
+                    reader = csv.DictReader(decoded_file)
+                    for row in reader:
+                        messages.info(request, f"{row}")
+                        name = row['name']
+                        if not Student.objects.filter(name=name, school=admin.school).exists():
+                            student = Student.objects.create(name=name, school=admin.school)
+                            student.save()
+                    # Optionally, redirect to another page after upload
+                    return redirect('base:admin-home')
+                except Exception as e:
+                    form.add_error('csv_file', 'Error processing file: ' + str(e))
+    return render(request, 'admin-home.html', {'form': form})
+
+def unauthorized(request):
+    return render(request, 'unauthorized.html')
