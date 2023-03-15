@@ -124,8 +124,9 @@ def admin_home(request):
                     for row in reader:
                         messages.info(request, f"{row}")
                         name = row['name']
-                        student = Student.objects.create(name=name, school=admin.school)
-                        student.save()
+                        if not Student.objects.filter(name=name, school=admin.school).exists():
+                            student = Student.objects.create(name=name, school=admin.school)
+                            student.save()
                     # Optionally, redirect to another page after upload
                     return redirect('base:admin-home')
                 except Exception as e:
