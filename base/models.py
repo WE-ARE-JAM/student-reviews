@@ -2,6 +2,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 
+
+# class User(AbstractUser):
+#     pass
+
+
+
 # School Model
 
 class School (models.Model):
@@ -11,8 +17,6 @@ class School (models.Model):
         return '%s' % (self.name)
 
 
-# class User(AbstractUser):
-#     pass
 
 # Admin Model
 
@@ -23,6 +27,8 @@ class Admin (models.Model):
     def __str__(self):
         return '%s : %s' % (self.user.get_full_name(), self.school.name)
 
+
+
 # Staff Model
 
 class Staff (models.Model):
@@ -32,6 +38,7 @@ class Staff (models.Model):
 
     def __str__(self):
         return '%s : %s' % (self.user.get_full_name(), self.school.name)
+
 
 
 # Student Model
@@ -46,6 +53,8 @@ class Student (models.Model):
     
     def __str__(self):
         return '%s : %s' % (self.name, self.school.name)
+
+
 
 # Review Model
 # A Stats object must be created each time a review is created
@@ -64,6 +73,7 @@ class Review (models.Model):
         return 'staff: %s student: %s text: %s' % (self.staff.user.get_full_name(), self.student.name, self.text)    
 
 
+
 # Endorsement Model
 
 class Endorsement (models.Model):   #change to boolean
@@ -77,6 +87,7 @@ class Endorsement (models.Model):   #change to boolean
 
     def __str__(self):
         return 'staff: %s leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.staff.user.get_full_name(), self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
+
 
 
 # Vote Model
@@ -94,6 +105,8 @@ class Vote (models.Model):
 
     def __str__(self):
         return 'staff: %s review: %s value: %s' % (self.staff, self.review, self.value)
+
+
 
 # Karma
 
@@ -123,9 +136,12 @@ class Karma (models.Model):
     def __str__(self):
         return 'student: %s score: %s' % (self.student.name,self.score)
 
-#Stats : for displaying number of upvotes and downvotes per review
-#must be created each time a review is created
-#call by [review object].stats.upvotes or [review object].stats.downvotes
+
+
+# Stats : for displaying number of upvotes and downvotes per review
+# must be created each time a review is created
+# call by [review object].stats.upvotes or [review object].stats.downvotes
+
 class Stats (models.Model):
     review= models.OneToOneField(Review, on_delete=models.CASCADE, primary_key=True)
 
@@ -141,6 +157,7 @@ class Stats (models.Model):
 
     def __str__(self):
         return 'upvotes: %s  downvotes: %s' % (self.upvotes, self.downvotes)
+
 
 
 # Staff Inbox

@@ -14,3 +14,5 @@ urlpatterns = [
     path('dashboard', views.admin_home, name='admin-home'),
     path('unauthorized', views.unauthorized, name='unauthorized'),
 ]
+
+# call url using path name, eg. url 'base:student-search'

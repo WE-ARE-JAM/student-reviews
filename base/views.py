@@ -61,6 +61,8 @@ def logout_request(request):
     return redirect('base:login')
 
 
+# View for when a user attempts to access a view that they are not authorized to
+
 def unauthorized(request):
     return render(request, 'unauthorized.html')
 
@@ -79,6 +81,8 @@ def unauthorized(request):
 
 
 # ------------------ SUPERUSER VIEWS ----------------------
+
+# Admin registration view - allows authenticated superusers to create school admin accounts
 
 @login_required()
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
@@ -100,6 +104,8 @@ def admin_register(request):
 
 # ------------------ SCHOOL STAFF VIEWS ----------------------
 
+# Staff registration view - allows school staff (eg. teachers) to create accounts
+
 def staff_register(request):
     if request.method == 'POST':
         form = StaffRegistrationForm(request.POST)
@@ -119,6 +125,8 @@ def staff_home(request):
     return render(request, 'staff-home.html')
 
 
+# Search for students - allows school staff to search for students in their school
+
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def student_search(request):
@@ -135,6 +143,9 @@ def student_search(request):
 
 
 # ------------------ SCHOOL ADMIN VIEWS ----------------------
+
+# School admin homepage / csv upload form - allows school admins to upload a csv file
+# with student names to populate the Student table
 
 @login_required()
 @user_passes_test(is_admin, login_url='/unauthorized')
@@ -158,7 +169,6 @@ def admin_home(request):
                         if not Student.objects.filter(name=name, school=admin.school).exists():
                             student = Student.objects.create(name=name, school=admin.school)
                             student.save()
-                    # Optionally, redirect to another page after upload
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))

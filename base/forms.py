@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from .models import Admin, Staff, School
 
+
+# form for registering school admins (to be used by superusers only)
 class AdminRegistrationForm(UserCreationForm):
     school = forms.ModelChoiceField(queryset=School.objects.all(), required=True)
     email = forms.EmailField(required=True)
@@ -28,6 +30,7 @@ class AdminRegistrationForm(UserCreationForm):
         return user
 
 
+# form for registering school staff
 class StaffRegistrationForm(UserCreationForm):
     school = forms.ModelChoiceField(queryset=School.objects.all(), required=True)
     email = forms.EmailField(required=True)
@@ -53,5 +56,6 @@ class StaffRegistrationForm(UserCreationForm):
         return user
 
 
+# form for uploading .csv file with student names
 class UploadCsvForm(forms.Form):
     csv_file = forms.FileField(label='Select a CSV file')
