@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm
-from .models import Admin, Student
+from .models import Admin, Student, Staff
 import csv
 
 # Callables for user_passes_test()
@@ -103,6 +103,16 @@ def logout_request(request):
 
 def staff_home(request):
     return render(request, 'staff-home.html')
+
+
+def student_search(request):
+    query = request.GET.get('query')
+    current_user = request.user
+    staff = Staff.objects.get(user=current_user)
+    # search for items matching the query
+    search_results = Student.objects.filter(name__icontains=query, school=staff.school)
+    context = {'query': query, 'search_results': search_results}
+    return render(request, 'search-results.html', context)
 
 
 @login_required()
