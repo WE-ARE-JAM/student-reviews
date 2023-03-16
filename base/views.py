@@ -20,46 +20,6 @@ def is_staff(user):
 # Create your views here.
 
 
-@login_required()
-@user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
-def admin_register(request):
-    if request.method == 'POST':
-        form = AdminRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Registration successful!')
-            return render(request, 'register.html', {'register_form': form})
-        messages.error(request, 'Registration unsuccessful.')
-    else:
-        form = AdminRegistrationForm()
-    return render(request, 'admin-register.html', {'register_form': form})
-
-
-def staff_register(request):
-    if request.method == 'POST':
-        form = StaffRegistrationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Registration successful!')
-            return redirect('base:login')
-        messages.error(request, 'Registration unsuccessful.')
-    else:
-        form = StaffRegistrationForm()
-    return render(request, 'staff-register.html', {'register_form': form})
-
-
-# def index(request):
-#     if request.user.is_authenticated:
-#         if request.user.is_superuser:
-#             return redirect('base:superuser-home')
-#         if is_admin(request.user):
-#             return redirect('base:admin-home')
-#         if is_staff(request.user):
-#             return redirect('base:staff-home')
-#     else:
-#         return redirect('base:login')
-
-
 def login_request(request):
     if request.user.is_authenticated:
         if request.user.is_superuser:
@@ -101,6 +61,58 @@ def logout_request(request):
     return redirect('base:login')
 
 
+def unauthorized(request):
+    return render(request, 'unauthorized.html')
+
+    
+# def index(request):
+#     if request.user.is_authenticated:
+#         if request.user.is_superuser:
+#             return redirect('base:superuser-home')
+#         if is_admin(request.user):
+#             return redirect('base:admin-home')
+#         if is_staff(request.user):
+#             return redirect('base:staff-home')
+#     else:
+#         return redirect('base:login')
+
+
+
+# ------------------ SUPERUSER VIEWS ----------------------
+
+@login_required()
+@user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
+def admin_register(request):
+    if request.method == 'POST':
+        form = AdminRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registration successful!')
+            return render(request, 'register.html', {'register_form': form})
+        messages.error(request, 'Registration unsuccessful.')
+    else:
+        form = AdminRegistrationForm()
+    return render(request, 'admin-register.html', {'register_form': form})
+
+# ------------------ END OF SUPERUSER VIEWS ----------------------
+
+
+
+# ------------------ SCHOOL STAFF VIEWS ----------------------
+
+def staff_register(request):
+    if request.method == 'POST':
+        form = StaffRegistrationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registration successful!')
+            return redirect('base:login')
+        messages.error(request, 'Registration unsuccessful.')
+    else:
+        form = StaffRegistrationForm()
+    return render(request, 'staff-register.html', {'register_form': form})
+
+
 def staff_home(request):
     return render(request, 'staff-home.html')
 
@@ -114,6 +126,11 @@ def student_search(request):
     context = {'query': query, 'search_results': search_results}
     return render(request, 'search-results.html', context)
 
+# ------------------ END OF SCHOOL STAFF VIEWS ----------------------
+
+
+
+# ------------------ SCHOOL ADMIN VIEWS ----------------------
 
 @login_required()
 @user_passes_test(is_admin, login_url='/unauthorized')
@@ -143,5 +160,4 @@ def admin_home(request):
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
     return render(request, 'admin-home.html', {'form': form})
 
-def unauthorized(request):
-    return render(request, 'unauthorized.html')
+# ------------------ END OF SCHOOL ADMIN VIEWS ----------------------
