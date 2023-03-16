@@ -64,7 +64,7 @@ def logout_request(request):
 def unauthorized(request):
     return render(request, 'unauthorized.html')
 
-    
+
 # def index(request):
 #     if request.user.is_authenticated:
 #         if request.user.is_superuser:
@@ -113,10 +113,14 @@ def staff_register(request):
     return render(request, 'staff-register.html', {'register_form': form})
 
 
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
 def staff_home(request):
     return render(request, 'staff-home.html')
 
 
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
 def student_search(request):
     query = request.GET.get('query')
     current_user = request.user
