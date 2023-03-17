@@ -135,8 +135,13 @@ def student_search(request):
     staff = Staff.objects.get(user=current_user)
     # search for items matching the query
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
-    context = {'query': query, 'search_results': search_results}
+    context = {'query' : query, 'search_results' : search_results}
     return render(request, 'search-results.html', context)
+
+
+def student_profile(request, student_name):
+    student = Student.objects.get(name=student_name)
+    return render(request, 'student-profile.html', context={'student':student})
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 

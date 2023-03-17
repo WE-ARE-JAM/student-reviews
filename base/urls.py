@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin-register', views.admin_register, name='superuser-home'),
     path('profile', views.staff_home, name='staff-home'),
     path('search-results', views.student_search, name='student-search'),
+    path('student/<str:student_name>/', views.student_profile, name='student-profile'),
     path('dashboard', views.admin_home, name='admin-home'),
     path('unauthorized', views.unauthorized, name='unauthorized'),
 ]
