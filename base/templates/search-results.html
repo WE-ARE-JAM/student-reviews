@@ -1,0 +1,15 @@
+{% extends 'staff-header.html' %}
+
+{% block content %}
+    <h1>Search Results</h1>
+    {% if search_results %}
+        <p>Found {{ search_results|length }} result(s).</p>
+        <ul>
+            {% for result in search_results %}
+                <li>{{ result }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No results found.</p>
+    {% endif %}
+{% endblock %}

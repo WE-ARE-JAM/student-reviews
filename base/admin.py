@@ -13,3 +13,5 @@ admin.site.register(Staff_Inbox)
 admin.site.register(Endorsement)
 admin.site.register(Karma)
 admin.site.register(Stats)
+
+# Note: no need to register User model - Django has it registered already
