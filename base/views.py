@@ -158,7 +158,7 @@ def add_review(request, student_pk):
         else:
             is_good=False
         
-        review= Review.objectts.create(staff=staff, student=student,text=text, rating=rating,is_good=is_good)
+        review= Review.objects.create(staff=staff, student=student,text=text, rating=rating,is_good=is_good)
         review.save()
         stats= Stats.objects.create(review=review)
         stats.save()
