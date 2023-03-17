@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from .models import Admin, Staff, School
+from .models import Admin, Staff, School, Review
 
 
 # form for registering school admins (to be used by superusers only)
@@ -59,3 +59,10 @@ class StaffRegistrationForm(UserCreationForm):
 # form for uploading .csv file with student names
 class UploadCsvForm(forms.Form):
     csv_file = forms.FileField(label='Select a CSV file')
+
+
+# form for writing a review for a student
+class ReviewForm(ModelForm):
+    class Meta:
+        model = Review
+        fields = ('text', 'rating')
