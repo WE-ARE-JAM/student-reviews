@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm
-from .models import Admin, Student, Staff
+from .models import Admin, Student, Staff, Review
 import csv
 
 # Callables for user_passes_test()
@@ -135,13 +135,21 @@ def student_search(request):
     staff = Staff.objects.get(user=current_user)
     # search for items matching the query
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
-    context = {'query' : query, 'search_results' : search_results}
+    context = {
+        'query' : query,
+        'search_results' : search_results
+    }
     return render(request, 'search-results.html', context)
 
 
 def student_profile(request, student_name):
     student = Student.objects.get(name=student_name)
-    return render(request, 'student-profile.html', context={'student':student})
+    reviews = Review.objects.filter(student=student)
+    context = {
+        'student' : student,
+        'reviews' : reviews
+    }
+    return render(request, 'student-profile.html', context)
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 

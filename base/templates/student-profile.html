@@ -1,3 +1,22 @@
 {% extends "staff-header.html" %}
 
 {% block title %}{{ student.name }}{% endblock %}
+
+{% block content %}
+
+<button type="button" class="btn btn-primary">Write Review</button>
+
+<button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+
+{% if reviews %}
+    <p>{{ reviews|length }} review(s).</p>
+    <ul>
+        {% for review in reviews %}
+            <div>{{ review }}</div>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No reviews found.</p>
+{% endif %}
+
+{% endblock %}
