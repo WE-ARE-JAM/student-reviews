@@ -3,11 +3,6 @@ from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 
 
-# class User(AbstractUser):
-#     pass
-
-
-
 # School Model
 
 class School (models.Model):
@@ -64,6 +59,7 @@ class Review (models.Model):
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
     text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
+    rating= models.IntegerField(null=False, default=3)
     is_good= models.BooleanField(null=False)
     created= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
