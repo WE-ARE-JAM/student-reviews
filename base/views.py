@@ -142,6 +142,8 @@ def student_search(request):
     return render(request, 'search-results.html', context)
 
 
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
 def student_profile(request, student_name):
     student = Student.objects.get(name=student_name)
     reviews = Review.objects.filter(student=student)
@@ -152,6 +154,8 @@ def student_profile(request, student_name):
     return render(request, 'student-profile.html', context)
 
 
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
 def create_review(request, student_name):
     student = Student.objects.get(name=student_name)
     if request.method == 'POST':
@@ -162,7 +166,7 @@ def create_review(request, student_name):
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
-            stats= Stats.objects.create(review=review) #every review object needs a stats object
+            stats = Stats.objects.create(review=review) #every review object needs a stats object
             stats.save()
             messages.success(request, 'Your review has been added!')
             return redirect('base:student-profile', student_name=student_name)
@@ -174,7 +178,8 @@ def create_review(request, student_name):
     }
     return render(request, 'create-review.html', context)
 
-    # Edit Review: allow a staff member to change a review that they already posted\
+
+# Edit Review: allow a staff member to change a review that they already posted\
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
@@ -194,9 +199,7 @@ def edit_review(request, review_pk):
                 review.is_good = review.rating >= 3
                 review.edited=True
                 review.save()   #hit the database
-                
         return redirect('base:staff-home')  
-
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
