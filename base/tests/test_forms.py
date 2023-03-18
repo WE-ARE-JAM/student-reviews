@@ -46,13 +46,6 @@ class AdminRegistrationFormTests(TestCase):
         form = AdminRegistrationForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertIn('password2', form.errors)
-
-
-
-
-class StaffRegistrationFormTests(TestCase):
-    def setUp(self):
-        self.school = School.objects.create(name='ASJA')
     
 
 
