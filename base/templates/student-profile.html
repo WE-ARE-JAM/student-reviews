@@ -15,6 +15,7 @@
     <ul>
         {% for review in reviews %}
             <div>{{ review }}</div>
+            <div>{{ review.stats }}</div>
         {% endfor %}
     </ul>
 {% else %}
