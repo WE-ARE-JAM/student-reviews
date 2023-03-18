@@ -119,16 +119,17 @@ class StaffRegistrationFormTests(TestCase):
         self.assertEqual(len(form.errors), 1)
         self.assertIn('password2', form.errors)
 
-    # def test_existing_email(self):
-    #     user = User.objects.create_user(
-    #         username='existinguser',
-    #         password='existingpassword',
-    #         email=self.valid_form_data['email'],
-    #     )
-    #     form = StaffRegistrationForm(data=self.valid_form_data)
-    #     self.assertFalse(form.is_valid())
-    #     self.assertEqual(len(form.errors), 1)
-    #     self.assertIn('email', form.errors)
+    def test_existing_email(self):
+        user = User.objects.create_user(
+            username='existinguser',
+            password='existingpassword',
+            email=self.valid_form_data['email'],
+        )
+        form = StaffRegistrationForm(data=self.valid_form_data)
+        self.assertFalse(form.is_valid())
+        self.assertIn('email', form.errors)
+        self.assertEqual(len(form.errors['email']), 1)
+        self.assertEqual(form.errors['email'][0], 'Email already exists')
 
     def test_group_added(self):
         form = StaffRegistrationForm(data=self.valid_form_data)
