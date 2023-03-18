@@ -6,7 +6,7 @@
         <p>Found {{ search_results|length }} result(s).</p>
         <ul>
             {% for result in search_results %}
-                <li>{{ result }}</li>
+                <li><a href="{% url 'base:student-profile' result.name %}">{{ result }}</a></li>
             {% endfor %}
         </ul>
     {% else %}

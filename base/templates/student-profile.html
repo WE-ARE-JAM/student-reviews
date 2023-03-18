@@ -1,0 +1,24 @@
+{% extends "staff-header.html" %}
+
+{% block title %}{{ student.name }}{% endblock %}
+
+{% block content %}
+
+<a href="{% url 'base:write-review' student.name %}">
+    <button type="button" class="btn btn-primary">Write Review</button>
+</a>
+
+<button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+
+{% if reviews %}
+    <p>{{ reviews|length }} review(s).</p>
+    <ul>
+        {% for review in reviews %}
+            <div>{{ review }}</div>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No reviews found.</p>
+{% endif %}
+
+{% endblock %}
