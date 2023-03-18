@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review
+from .models import Admin, Student, Staff, Review, Stats, Karma
 import csv
 
 # Callables for user_passes_test()
@@ -162,6 +162,8 @@ def create_review(request, student_name):
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
+            stats= Stats.objects.create(review=review) #every review object needs a stats object
+            stats.save()
             messages.success(request, 'Your review has been added!')
             return redirect('base:student-profile', student_name=student_name)
     else:
@@ -171,6 +173,29 @@ def create_review(request, student_name):
         'student' : student
     }
     return render(request, 'create-review.html', context)
+
+    # Edit Review: allow a staff member to change a review that they already posted\
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def edit_review(request, review_pk):
+    review= Review.objects.get(pk=review_pk)
+    data={
+        'text': review.text,
+        'rating': review.rating
+    }
+    form=ReviewForm(data, initial=data)
+    if request.method=='GET':
+        return render(request, 'edit-review.html', data)
+    else:   #if it was a POST request
+        if form.has_changed():  #checks if the data is different
+            if form.is_valid():
+                review = form.save(commit=False)
+                review.is_good = review.rating >= 3
+                review.edited=True
+                review.save()   #hit the database
+                
+        return redirect('base:staff-home')  
 
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
@@ -204,6 +229,8 @@ def admin_home(request):
                         if not Student.objects.filter(name=name, school=admin.school).exists():
                             student = Student.objects.create(name=name, school=admin.school)
                             student.save()
+                            karma=Karma.objects.create(student=student) #create a karma object for each student
+                            karma.save()
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
