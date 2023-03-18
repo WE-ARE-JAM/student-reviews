@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm
+from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
 from .models import Admin, Student, Staff, Review
 import csv
 
@@ -150,6 +150,28 @@ def student_profile(request, student_name):
         'reviews' : reviews
     }
     return render(request, 'student-profile.html', context)
+
+
+def create_review(request, student_name):
+    student = Student.objects.get(name=student_name)
+    if request.method == 'POST':
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.staff = Staff.objects.get(user=request.user)
+            review.student = student
+            review.is_good = review.rating >= 3
+            review.save()
+            messages.success(request, 'Your review has been added!')
+            return redirect('base:student-profile', student_name=student_name)
+    else:
+        form = ReviewForm()
+    context = {
+        'form' : form,
+        'student' : student
+    }
+    return render(request, 'create-review.html', context)
+
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 

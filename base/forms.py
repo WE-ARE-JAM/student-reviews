@@ -62,7 +62,22 @@ class UploadCsvForm(forms.Form):
 
 
 # form for writing a review for a student
-class ReviewForm(ModelForm):
+class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
         fields = ('text', 'rating')
+        widgets = {
+            'rating' : forms.NumberInput(attrs={'min':'1', 'max':'5'})
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text'})
+        self.fields['rating'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter rating out of 5'})
+    
+    def clean_rating(self):
+        rating = self.cleaned_data.get('rating')
+        if rating < 1 or rating > 5:
+            raise forms.ValidationError('Rating must be between 1 and 5.')
+        return rating
+    
