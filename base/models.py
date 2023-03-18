@@ -64,13 +64,14 @@ class Review (models.Model):
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
     text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
+    rating = models.IntegerField(null=False, default=3)
     is_good= models.BooleanField(null=False)
-    created= models.DateTimeField(auto_now_add=True)
+    created_at= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
     deleted= models.BooleanField(default=False)
 
     def __str__(self):
-        return 'staff: %s student: %s text: %s' % (self.staff.user.get_full_name(), self.student.name, self.text)    
+        return 'staff: %s student: %s text: %s rating: %d' % (self.staff.user.get_full_name(), self.student.name, self.text, self.rating)    
 
 
 
