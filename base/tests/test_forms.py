@@ -88,10 +88,10 @@ class StaffRegistrationFormTests(TestCase):
         form_data = {
             'first_name': '',
             'last_name': '',
-            'email': 'invalidemail',
+            'email': 'wrongemail',
             'username': '',
             'password1': '',
-            'password2': 'testpassword123',
+            'password2': 'pass123',
             'school': '',
         }
         form = StaffRegistrationForm(data=form_data)
