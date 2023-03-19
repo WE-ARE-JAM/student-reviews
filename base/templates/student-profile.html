@@ -16,6 +16,13 @@
         {% for review in reviews %}
             <div>{{ review }}</div>
             <div>{{ review.stats }}</div>
+            <form action="{% url 'vote-review' %}" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="review_id" value="{{ review.id }}">
+                <input type="hidden" name="is_like" value="True">
+                <button type="submit" name="submit_like">Like</button>
+                <input type="hidden" name="review_id" 
+            </form>
         {% endfor %}
     </ul>
 {% else %}

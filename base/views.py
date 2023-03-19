@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
+from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, VoteForm
 from .models import Admin, Student, Staff, Review, Stats, Karma
 import csv
 
@@ -200,6 +200,39 @@ def edit_review(request, review_pk):
                 review.edited=True
                 review.save()   #hit the database
         return redirect('base:staff-home')  
+
+
+@login_required
+@user_passes_test(is_staff, login_url='/unauthorized')
+def vote_review(request):
+    if request.method == 'POST':
+        form = VoteForm(request.POST)
+        if form.is_valid():
+            review_id = form.cleaned_data['review_id']
+            value = form.cleaned_data['value']
+            review = Review.objects.get(id=review_id)
+            staff = Staff.objects.get(user=request.user)
+            try:
+                vote = Vote.objects.get(staff=staff, review=review)
+                if vote.value != value:
+                    # if value == "UP":
+                    #     review.likes += 1
+                    #     review.dislikes -= 1
+                    # else:
+                    #     review.likes -= 1
+                    #     review.dislikes += 1
+                    vote.value = value
+                    vote.save()
+                    # review.save()
+            except Vote.DoesNotExist:
+                vote = Vote(staff=staff, review=review, value=value)
+                # if is_like:
+                #     review.likes += 1
+                # else:
+                #     review.dislikes += 1
+                vote.save()
+                # review.save()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 

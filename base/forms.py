@@ -88,3 +88,9 @@ class ReviewForm(forms.ModelForm):
             raise forms.ValidationError('Rating must be between 1 and 5.')
         return rating
     
+
+class VoteForm(forms.Form):
+    review_id = forms.IntegerField(widget=forms.HiddenInput)
+    value = forms.CharField(widget=forms.HiddenInput)
+    submit_upvote = forms.SubmitButtonField(label='Upvote')
+    submit_downvote = forms.SubmitButtonField(label='Downvote')
