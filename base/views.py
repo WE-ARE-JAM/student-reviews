@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review
+from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement
 import csv
 
 # Callables for user_passes_test()
@@ -142,26 +142,48 @@ def student_search(request):
     return render(request, 'search-results.html', context)
 
 
+# Show student profile
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
 def student_profile(request, student_name):
-    student = Student.objects.get(name=student_name)
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
+    karma = student.karma
     reviews = Review.objects.filter(student=student)
+    endorsements = {}
+    endorsements['leadership'] = Endorsement.objects.filter(student=student, leadership=True).count()
+    endorsements['respect'] = Endorsement.objects.filter(student=student, respect=True).count()
+    endorsements['punctuality'] = Endorsement.objects.filter(student=student, punctuality=True).count()
+    endorsements['participation'] = Endorsement.objects.filter(student=student, participation=True).count()
+    endorsements['teamwork'] = Endorsement.objects.filter(student=student, teamwork=True).count()
+    
     context = {
         'student' : student,
+        'karma' : karma,
+        'endorsements' : endorsements,
         'reviews' : reviews
     }
     return render(request, 'student-profile.html', context)
 
 
+# Write a review for a student
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
 def create_review(request, student_name):
-    student = Student.objects.get(name=student_name)
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
     if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
-            review.staff = Staff.objects.get(user=request.user)
+            review.staff = staff
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
+            stats = Stats.objects.create(review=review) # every review object needs a stats object
+            stats.save()
             messages.success(request, 'Your review has been added!')
             return redirect('base:student-profile', student_name=student_name)
     else:
@@ -171,6 +193,86 @@ def create_review(request, student_name):
         'student' : student
     }
     return render(request, 'create-review.html', context)
+
+
+# Edit Review: allow a staff member to change a review that they already posted
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def edit_review(request, review_pk):
+    review= Review.objects.get(pk=review_pk)
+    data={
+        'text': review.text,
+        'rating': review.rating
+    }
+    form=ReviewForm(data, initial=data)
+    if request.method=='GET':
+        return render(request, 'edit-review.html', data)
+    else:   #if it was a POST request
+        if form.has_changed():  #checks if the data is different
+            if form.is_valid():
+                review = form.save(commit=False)
+                review.is_good = review.rating >= 3
+                review.edited=True
+                review.save()   #hit the database
+        return redirect('base:staff-home')
+
+
+# Vote on a review
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def vote_review(request, review_id, vote_value):
+    if request.method == "POST":
+        review = Review.objects.get(id=review_id)
+        staff = Staff.objects.get(user=request.user)
+        try:
+            vote = Vote.objects.get(staff=staff, review=review)
+            if vote.value != vote_value:
+                vote.delete()
+                vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
+                vote.save()
+        except Vote.DoesNotExist:
+            vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
+            vote.save()
+    return redirect('base:student-profile', student_name=review.student.name)
+
+
+# Give a student a skill endorsement
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def give_endorsement(request, student_name, skill):
+    if request.method == "POST":
+        staff = Staff.objects.get(user=request.user)
+        student = Student.objects.get(name=student_name, school=staff.school)
+        try:
+            endorsements = Endorsement.objects.get(student=student, staff=staff)
+            if skill == 'leadership':
+                endorsements.leadership = not endorsements.leadership
+            elif skill == 'respect':
+                endorsements.respect = not endorsements.respect
+            elif skill == 'punctuality':
+                endorsements.punctuality = not endorsements.punctuality
+            elif skill == 'participation':
+                endorsements.participation = not endorsements.participation
+            elif skill == 'teamwork':
+                endorsements.teamwork = not endorsements.teamwork
+            endorsements.save()
+        except Endorsement.DoesNotExist:
+            endorsements = Endorsement.objects.create(student=student, staff=staff)
+            if skill == 'leadership':
+                endorsements.leadership = not endorsements.leadership
+            elif skill == 'respect':
+                endorsements.respect = not endorsements.respect
+            elif skill == 'punctuality':
+                endorsements.punctuality = not endorsements.punctuality
+            elif skill == 'participation':
+                endorsements.participation = not endorsements.participation
+            elif skill == 'teamwork':
+                endorsements.teamwork = not endorsements.teamwork
+            endorsements.save()
+    return redirect('base:student-profile', student_name=student_name)
 
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
@@ -204,6 +306,8 @@ def admin_home(request):
                         if not Student.objects.filter(name=name, school=admin.school).exists():
                             student = Student.objects.create(name=name, school=admin.school)
                             student.save()
+                            karma = Karma.objects.create(student=student) # create a karma object for each student
+                            karma.save()
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))

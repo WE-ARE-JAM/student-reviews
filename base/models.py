@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
+from django.utils import timezone
+from datetime import datetime
 
 
 # class User(AbstractUser):
@@ -71,7 +73,7 @@ class Review (models.Model):
     deleted= models.BooleanField(default=False)
 
     def __str__(self):
-        return 'staff: %s student: %s text: %s rating: %d' % (self.staff.user.get_full_name(), self.student.name, self.text, self.rating)    
+        return '%s staff: %s student: %s text: %s rating: %d' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff.user.get_full_name(), self.student.name, self.text, self.rating)    
 
 
 
@@ -135,7 +137,7 @@ class Karma (models.Model):
         return karma
     
     def __str__(self):
-        return 'student: %s score: %s' % (self.student.name,self.score)
+        return 'student: %s score: %s' % (self.student.name, self.score)
 
 
 
