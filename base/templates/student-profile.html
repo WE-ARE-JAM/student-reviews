@@ -4,6 +4,37 @@
 
 {% block content %}
 
+<p><a href="#" onClick="document.getElementById('leadership_skill').submit()">Leadership</a> {{ endorsements.leadership }}</p>
+<p><a href="#" onClick="document.getElementById('respect_skill').submit()">Respect</a> {{ endorsements.respect }}</p>
+<p><a href="#" onClick="document.getElementById('punctuality_skill').submit()">Punctuality</a> {{ endorsements.punctuality }}</p>
+<p><a href="#" onClick="document.getElementById('participation_skill').submit()">Participation</a> {{ endorsements.participation }}</p>
+<p><a href="#" onClick="document.getElementById('teamwork_skill').submit()">Teamwork</a> {{ endorsements.teamwork }}</p>
+
+<form id="leadership_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='leadership' %}">
+    {% csrf_token %}
+    <input type="hidden">
+</form>
+
+<form id="respect_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='respect' %}">
+    {% csrf_token %}
+    <input type="hidden">
+</form>
+
+<form id="punctuality_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='punctuality' %}">
+    {% csrf_token %}
+    <input type="hidden">
+</form>
+
+<form id="participation_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='participation' %}">
+    {% csrf_token %}
+    <input type="hidden">
+</form>
+
+<form id="teamwork_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='teamwork' %}">
+    {% csrf_token %}
+    <input type="hidden">
+</form>
+
 <a href="{% url 'base:write-review' student.name %}">
     <button type="button" class="btn btn-primary">Write Review</button>
 </a>
