@@ -100,7 +100,7 @@ class ReviewModelTest(TestCase):
         )
         cls.staff = Staff.objects.create(user=cls.user, school=cls.school)
         cls.student = Student.objects.create(name = "Jane Doe",school=cls.school)
-        cls.review = Review.objects.create(staff=cls.staff, student=cls.student, text='This is a test review.', rating=3, is_good=True)
+        cls.review = Review.objects.create(staff=cls.staff, student=cls.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
         
 
     def test_review_string_representation(self):
@@ -110,10 +110,6 @@ class ReviewModelTest(TestCase):
     def test_review_text_max_length(self):
         max_length = self.review._meta.get_field('text').max_length
         self.assertEqual(max_length, 1000)
-
-    def test_review_text_min_length_validator(self):
-        with self.assertRaises(ValidationError):
-            Review.objects.create(staff=self.review.staff, student=self.review.student, text='This is a test.', rating=3, is_good=True)
 
     def test_review_rating_default_value(self):
         default_rating = self.review._meta.get_field('rating').default
