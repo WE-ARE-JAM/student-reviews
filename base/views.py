@@ -148,6 +148,7 @@ def student_search(request):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def student_profile(request, student_name):
     student = Student.objects.get(name=student_name)
+    karma = student.karma
     reviews = Review.objects.filter(student=student)
     endorsements = {}
     endorsements['leadership'] = Endorsement.objects.filter(student=student, leadership=True).count()
@@ -158,6 +159,7 @@ def student_profile(request, student_name):
     
     context = {
         'student' : student,
+        'karma' : karma,
         'endorsements' : endorsements,
         'reviews' : reviews
     }
@@ -178,7 +180,7 @@ def create_review(request, student_name):
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
-            stats = Stats.objects.create(review=review) #every review object needs a stats object
+            stats = Stats.objects.create(review=review) # every review object needs a stats object
             stats.save()
             messages.success(request, 'Your review has been added!')
             return redirect('base:student-profile', student_name=student_name)
