@@ -147,7 +147,8 @@ def student_search(request):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def student_profile(request, student_name):
-    student = Student.objects.get(name=student_name)
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
     karma = student.karma
     reviews = Review.objects.filter(student=student)
     endorsements = {}
@@ -171,12 +172,13 @@ def student_profile(request, student_name):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def create_review(request, student_name):
-    student = Student.objects.get(name=student_name)
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
     if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
             review = form.save(commit=False)
-            review.staff = Staff.objects.get(user=request.user)
+            review.staff = staff
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
@@ -242,8 +244,8 @@ def vote_review(request, review_id, vote_value):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def give_endorsement(request, student_name, skill):
     if request.method == "POST":
-        student = Student.objects.get(name=student_name)
         staff = Staff.objects.get(user=request.user)
+        student = Student.objects.get(name=student_name, school=staff.school)
         try:
             endorsements = Endorsement.objects.get(student=student, staff=staff)
             if skill == 'leadership':
