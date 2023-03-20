@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review, Stats, Karma
+from .models import Admin, Student, Staff, Review, Stats, Karma, Vote
 import csv
 
 # Callables for user_passes_test()
@@ -179,7 +179,7 @@ def create_review(request, student_name):
     return render(request, 'create-review.html', context)
 
 
-# Edit Review: allow a staff member to change a review that they already posted\
+# Edit Review: allow a staff member to change a review that they already posted
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
@@ -199,7 +199,25 @@ def edit_review(request, review_pk):
                 review.is_good = review.rating >= 3
                 review.edited=True
                 review.save()   #hit the database
-        return redirect('base:staff-home')  
+        return redirect('base:staff-home')
+
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def vote_review(request, review_id, vote_value):
+    if request.method == "POST":
+        review = Review.objects.get(id=review_id)
+        staff = Staff.objects.get(user=request.user)
+        try:
+            vote = Vote.objects.get(staff=staff, review=review)
+            if vote.value != vote_value:
+                vote.delete()
+                vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
+                vote.save()
+        except Vote.DoesNotExist:
+            vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
+            vote.save()
+    return redirect('base:student-profile', student_name=review.student.name)
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 

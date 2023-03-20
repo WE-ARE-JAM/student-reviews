@@ -16,6 +16,18 @@
         {% for review in reviews %}
             <div>{{ review }}</div>
             <div>{{ review.stats }}</div>
+
+            <a href="#" onClick="document.getElementById('likebutton').submit()">Upvote</a>   |   <a href="#" onClick="document.getElementById('dislikebutton').submit()">Downvote</a>
+
+            <form id="likebutton" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='UP' %}">
+                {% csrf_token %}
+                <input type="hidden">
+            </form>
+
+            <form id="dislikebutton" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='DOWN' %}">
+                {% csrf_token %}
+                <input type="hidden">
+            </form>
         {% endfor %}
     </ul>
 {% else %}
