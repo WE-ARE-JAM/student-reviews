@@ -1,8 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
-from base.models import Admin, School, School, Staff
-from base.forms import AdminRegistrationForm, StaffRegistrationForm
+from base.models import Admin, School, School, Staff, Admin
+from base.forms import AdminRegistrationForm, StaffRegistrationForm, ReviewForm
+from django.core.exceptions import ValidationError
+
 
 
 class AdminRegistrationFormTests(TestCase):
@@ -137,3 +139,43 @@ class StaffRegistrationFormTests(TestCase):
         self.assertEqual(staff.school, self.school)
 
 
+class ReviewFormTests(TestCase):
+
+    @classmethod
+    def setUp(cls):
+        cls.valid_form_data = {
+            'text' : 'This is a test review that is at least fifty characters.',
+            'rating' : '3'
+        }
+
+        cls.invalid_form_text = {
+            'text' : 'Invalid.',
+            'rating' : '3'
+        }
+
+        cls.invalid_form_rating = {
+            'text' : 'This is a test review that is at least fifty characters.',
+            'rating' : '10'
+        }
+
+
+    def test_valid_form(self):
+        form = ReviewForm(data=self.valid_form_data)
+        self.assertEqual({}, form.errors)
+        self.assertTrue(form.is_valid())
+
+    def test_invalid_form_text(self):
+        form = ReviewForm(data=self.invalid_form_text)
+        self.assertIn('text', form.errors)
+        self.assertFalse(form.is_valid())
+
+    def test_invalid_form_text(self):
+        form = ReviewForm(data=self.invalid_form_rating)
+        self.assertIn('rating', form.errors)
+        self.assertFalse(form.is_valid())
+        
+    def test_blank_form(self):
+        form = ReviewForm(data={})
+        self.assertIn('rating', form.errors)
+        self.assertIn('text',form.errors)
+        self.assertFalse(form.is_valid())
