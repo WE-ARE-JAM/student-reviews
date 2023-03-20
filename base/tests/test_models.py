@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.db import models
 from django.contrib.auth.models import Group, User
+from django.utils import timezone
+from datetime import datetime
 from django.urls import reverse
 from base.models import Admin, School, Staff, Student, Review
 from base.forms import AdminRegistrationForm
@@ -46,16 +48,17 @@ class StaffModelTests(TestCase):
         self.staff = Staff.objects.create(user=self.user, school=self.school)
     
     def test_staff_model_str(self):
-        self.assertEqual(str(self.staff), 'Test User : Pres')
+        self.assertEqual(str(self.staff), 'Test User : PRES')
 
     def test_staff_creation(self):
         self.assertEqual(self.staff.user.username, 'user')
         self.assertEqual(self.staff.school, self.school)
         self.assertEqual(str(self.staff), 'Test User : PRES')
 
+
 class StudentModelTest(TestCase):
     @classmethod
-    def setUp(self):
+    def setUp(cls):
         cls.school = School.objects.create(name='Test School')
         cls.student = Student.objects.create(name='John Doe', school=cls.school)
 
@@ -83,56 +86,48 @@ class StudentModelTest(TestCase):
         self.assertEquals(student.school, StudentModelTest.school)
 
 
-# class ReviewModelTest(TestCase):
+class ReviewModelTest(TestCase):
 
-#     @classmethod
-#     def setUpTestData(cls):
-#         cls.school = School.objects.create(name='ASJA')
-#         cls.user = User.objects.create_user(
-#             username='johndoe',
-#             email='johndoe@gmail.com',
-#             password='testpassword123',
-#             first_name='John',
-#             last_name='Doe'
-#         )
-#         cls.staff = Staff.objects.create(user=cls.user, school=cls.school)
-#         cls.student = Student.objects.create(name = "Jane Doe",school=cls.school)
-#         cls.review = Review.objects.create(staff=cls.staff, student=cls.student, text='This is a test review.', rating=3, is_good=True)
-#         # school = School.objects.create(name='Test School')
-#         # user = User.objects.create_user(username='testuser', password='12345')
-#         # staff = Staff.objects.create(user=user, school=school)
-#         # student = Student.objects.create(name='Test Student', school=school)
-#         # cls.review = Review.objects.create(staff=cls.review.staff, student=cls.review.student, text='This is a test review.', rating=3, is_good=True)
+    @classmethod
+    def setUpTestData(cls):
+        cls.school = School.objects.create(name='ASJA')
+        cls.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        cls.staff = Staff.objects.create(user=cls.user, school=cls.school)
+        cls.student = Student.objects.create(name = "Jane Doe",school=cls.school)
+        cls.review = Review.objects.create(staff=cls.staff, student=cls.student, text='This is a test review.', rating=3, is_good=True)
+        
 
-#     def test_review_string_representation(self):
-#         review_str = str(self.review)
-#         self.assertEqual(review_str, f'staff: {self.review.staff.user.get_full_name()} student: {self.review.student.name} text: {self.review.text} rating: {self.review.rating}')
+    def test_review_string_representation(self):
+        review_str = str(self.review)
+        self.assertEqual(review_str, f'{timezone.localtime(self.review.created_at).strftime("%d/%m/%Y, %H:%M")} staff: {self.review.staff.user.get_full_name()} student: {self.review.student.name} text: {self.review.text} rating: {self.review.rating}')
 
-#     def test_review_text_max_length(self):
-#         max_length = self.review._meta.get_field('text').max_length
-#         self.assertEqual(max_length, 1000)
+    def test_review_text_max_length(self):
+        max_length = self.review._meta.get_field('text').max_length
+        self.assertEqual(max_length, 1000)
 
-#     def test_review_text_min_length_validator(self):
-#         with self.assertRaises(ValidationError):
-#             Review.objects.create(staff=self.review.staff, student=self.review.student, text='This is a test.', rating=3, is_good=True)
+    def test_review_text_min_length_validator(self):
+        with self.assertRaises(ValidationError):
+            Review.objects.create(staff=self.review.staff, student=self.review.student, text='This is a test.', rating=3, is_good=True)
 
-#     def test_review_rating_default_value(self):
-#         default_rating = self.review._meta.get_field('rating').default
-#         self.assertEqual(default_rating, 3)
+    def test_review_rating_default_value(self):
+        default_rating = self.review._meta.get_field('rating').default
+        self.assertEqual(default_rating, 3)
 
-#     def test_review_is_good_null(self):
-#         with self.assertRaises(TypeError):
-#             Review.objects.create(staff=self.review.staff, student=self.review.student, text='This is a test review.', rating=3)
+    def test_review_created_at_auto_now_add(self):
+        created_at = self.review._meta.get_field('created_at')
+        self.assertTrue(created_at.auto_now_add)
 
-#     def test_review_created_at_auto_now_add(self):
-#         created_at = self.review._meta.get_field('created_at')
-#         self.assertTrue(created_at.auto_now_add)
+    def test_review_edited_default_value(self):
+        default_edited = self.review._meta.get_field('edited').default
+        self.assertFalse(default_edited)
 
-#     def test_review_edited_default_value(self):
-#         default_edited = self.review._meta.get_field('edited').default
-#         self.assertFalse(default_edited)
-
-#     def test_review_deleted_default_value(self):
-#         default_deleted = self.review._meta.get_field('deleted').default
-#         self.assertFalse(default_deleted)
+    def test_review_deleted_default_value(self):
+        default_deleted = self.review._meta.get_field('deleted').default
+        self.assertFalse(default_deleted)
 
