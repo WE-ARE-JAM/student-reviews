@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats
+from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Rank
 import csv
 
 # Callables for user_passes_test()
@@ -311,8 +311,10 @@ def admin_home(request):
                             student.save()
                             karma = Karma.objects.create(student=student) # create a karma object for each student
                             karma.save()
-                            endstats= EndStats.objects.create(student=student)  # create an endstats object for each student
+                            endstats= EndorsementStats.objects.create(student=student)  # create an endstats object for each student
                             endstats.save()
+                            rank=Rank.objects.create(student=student) #create a rank object for each student
+                            rank.save()
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))

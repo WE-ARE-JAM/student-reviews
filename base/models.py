@@ -165,16 +165,31 @@ class Karma (models.Model):
         karma= karma + (lead*10) + (respect*10) + (punc*10) + (part*10) + (team*10)
         return karma
     
+    def __str__(self):
+        return 'student: %s score: %s' % (self.student.name, self.score)
+    
+class Rank (models.Model):
+    student= models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
+
     @property
-    def rank (self):
+    def rank(self):
         all_students= Student.objects.filter(school=self.student.school)
-        max_karma= all_students.karma.max()
+        max_karma=100
+        for student in all_students:
+            if student.karma.score>max_karma:
+                max_karma=student.karma.score
         rank= self.karma / max_karma
         return rank
-
-    def __str__(self):
-        return 'student: %s score: %s rank: %s' % (self.student.name, self.score, self.rank)
-
+    
+    @property
+    def decribe(self):
+        if self.rank==1:
+            return "Top"
+        elif self.rank>=0.5:
+            return "Excellent"
+        elif self.rank>0:
+            return "Good"
+        else: return "Poor" #if negative
 
 
 # Stats : for displaying number of upvotes and downvotes per review
