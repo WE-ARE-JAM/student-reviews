@@ -176,14 +176,33 @@ def student_profile(request, student_name):
     student = Student.objects.get(name=student_name, school=staff.school)
     karma = student.karma
     reviews = Review.objects.filter(student=student)
-    endorsement_stats = EndorsementStats.objects.get(student=student)
+    endorsement_stats = student.endorsementstats
 
-    highest_endorsements = {}
-    
+    highest_endorsements = {
+        'leadership' : 0,
+        'respect' : 0,
+        'punctuality' : 0,
+        'participation' : 0,
+        'teamwork' : 0
+    }
+    all_endorsement_stats = [stats for stats in EndorsementStats.objects.all() if stats.school==staff.school]
+    for stats in all_endorsement_stats:
+        if stats.leadership > highest_endorsements['leadership']:
+            highest_endorsements['leadership'] = stats.leadership
+        if stats.respect > highest_endorsements['respect']:
+            highest_endorsements['respect'] = stats.respect
+        if stats.punctuality > highest_endorsements['punctuality']:
+            highest_endorsements['punctuality'] = stats.punctuality
+        if stats.participation > highest_endorsements['participation']:
+            highest_endorsements['participation'] = stats.participation
+        if stats.teamwork > highest_endorsements['teamwork']:
+            highest_endorsements['teamwork'] = stats.teamwork
+
     context = {
         'student' : student,
         'karma' : karma,
         'endorsement_stats' : endorsement_stats,
+        'highest_endorsements' : highest_endorsements,
         'reviews' : reviews
     }
     return render(request, 'student-profile.html', context)
