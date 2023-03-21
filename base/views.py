@@ -122,7 +122,32 @@ def staff_register(request):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def staff_home(request):
-    return render(request, 'staff-home.html')
+    staff = Staff.objects.get(user=request.user)
+    reviews = Review.objects.filter(staff=staff)
+    num_reviews = reviews.count()
+    num_upvotes = 0
+    num_downvotes = 0
+    for review in reviews:
+        num_upvotes += review.stats.upvotes
+        num_downvotes += review.stats.downvotes
+    
+    endorsements = Endorsement.objects.filter(staff=staff)
+    num_endorsements_given = 0
+    for endorsement in endorsements:
+        if endorsement.leadership: num_endorsements_given += 1
+        if endorsement.respect: num_endorsements_given += 1
+        if endorsement.punctuality: num_endorsements_given += 1
+        if endorsement.participation: num_endorsements_given += 1
+        if endorsement.teamwork: num_endorsements_given += 1
+
+    context = {
+        'num_reviews' : num_reviews,
+        'num_upvotes' : num_upvotes,
+        'num_downvotes' : num_downvotes,
+        'num_endorsements' : num_endorsements_given
+    }
+    
+    return render(request, 'staff-home.html', context)
 
 
 # Search for students - allows school staff to search for students in their school
