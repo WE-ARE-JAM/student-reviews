@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import School, Admin, Student, Staff, Review, Vote, Staff_Inbox, Endorsement, Karma, Stats
+from .models import School, Admin, Student, Staff, Review, Vote, Staff_Inbox, Endorsement, Karma, Stats, EndStats
 
 # Register your models here.
 
@@ -13,5 +13,6 @@ admin.site.register(Staff_Inbox)
 admin.site.register(Endorsement)
 admin.site.register(Karma)
 admin.site.register(Stats)
+admin.site.register(EndStats)
 
 # Note: no need to register User model - Django has it registered already
