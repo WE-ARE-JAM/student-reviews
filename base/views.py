@@ -176,19 +176,14 @@ def student_profile(request, student_name):
     student = Student.objects.get(name=student_name, school=staff.school)
     karma = student.karma
     reviews = Review.objects.filter(student=student)
-    endorsements = {}
-    endorsements['leadership'] = Endorsement.objects.filter(student=student, leadership=True).count()
-    endorsements['respect'] = Endorsement.objects.filter(student=student, respect=True).count()
-    endorsements['punctuality'] = Endorsement.objects.filter(student=student, punctuality=True).count()
-    endorsements['participation'] = Endorsement.objects.filter(student=student, participation=True).count()
-    endorsements['teamwork'] = Endorsement.objects.filter(student=student, teamwork=True).count()
+    endorsement_stats = EndorsementStats.objects.get(student=student)
 
     highest_endorsements = {}
     
     context = {
         'student' : student,
         'karma' : karma,
-        'endorsements' : endorsements,
+        'endorsement_stats' : endorsement_stats,
         'reviews' : reviews
     }
     return render(request, 'student-profile.html', context)
