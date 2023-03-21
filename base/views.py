@@ -158,6 +158,9 @@ def student_profile(request, student_name):
     endorsements['participation'] = Endorsement.objects.filter(student=student, participation=True).count()
     endorsements['teamwork'] = Endorsement.objects.filter(student=student, teamwork=True).count()
     
+    students=Student.objects.filter(school=staff.school)
+    max_lead= students.endstats.leadership.max()    
+
     context = {
         'student' : student,
         'karma' : karma,
