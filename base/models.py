@@ -92,6 +92,35 @@ class Endorsement (models.Model):   #change to boolean
         return 'staff: %s leadership: %s respect: %s punctuality: %s participation: %s teamwork: %s' % (self.staff.user.get_full_name(), self.leadership, self.respect, self.punctuality, self.participation, self.teamwork)
 
 
+# Endorsement Stats Model
+
+class EndStats (models.Model):
+    student= models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
+
+    @property
+    def school(self):
+        return self.student.school
+    
+    @property
+    def leadership(self):
+        return Endorsement.objects.filter(student=self.student, leadership=True).count()
+    
+    @property
+    def respect(self):
+        return Endorsement.objects.filter(student=self.student, respect=True).count()
+
+    @property
+    def punctuality(self):
+        return Endorsement.objects.filter(student=self.student, punctuality=True).count()
+
+    @property
+    def participation(self):
+        return Endorsement.objects.filter(student=self.student, participation=True).count()
+    
+    @property
+    def teamwork(self):
+        return Endorsement.objects.filter(student=self.student, teamwork=True).count()
+
 
 # Vote Model
 
