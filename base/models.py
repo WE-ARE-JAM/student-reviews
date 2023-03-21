@@ -94,7 +94,7 @@ class Endorsement (models.Model):   #change to boolean
 
 # Endorsement Stats Model
 
-class EndStats (models.Model):
+class EndorsementStats (models.Model):
     student= models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
 
     @property
@@ -165,8 +165,15 @@ class Karma (models.Model):
         karma= karma + (lead*10) + (respect*10) + (punc*10) + (part*10) + (team*10)
         return karma
     
+    @property
+    def rank (self):
+        all_students= Student.objects.filter(school=self.student.school)
+        max_karma= all_students.karma.max()
+        rank= self.karma / max_karma
+        return rank
+
     def __str__(self):
-        return 'student: %s score: %s' % (self.student.name, self.score)
+        return 'student: %s score: %s rank: %s' % (self.student.name, self.score, self.rank)
 
 
 

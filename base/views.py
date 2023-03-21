@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndStats
+from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats
 import csv
 
 # Callables for user_passes_test()
