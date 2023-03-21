@@ -182,6 +182,8 @@ def student_profile(request, student_name):
     endorsements['punctuality'] = Endorsement.objects.filter(student=student, punctuality=True).count()
     endorsements['participation'] = Endorsement.objects.filter(student=student, participation=True).count()
     endorsements['teamwork'] = Endorsement.objects.filter(student=student, teamwork=True).count()
+
+    highest_endorsements = {}
     
     context = {
         'student' : student,

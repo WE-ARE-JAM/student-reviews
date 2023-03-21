@@ -6,11 +6,11 @@
 
 <p>Karma score: {{ karma.score }}</p>
 
-<p><a href="#" onClick="document.getElementById('leadership_skill').submit()">Leadership</a> {{ endorsements.leadership }}</p>
-<p><a href="#" onClick="document.getElementById('respect_skill').submit()">Respect</a> {{ endorsements.respect }}</p>
-<p><a href="#" onClick="document.getElementById('punctuality_skill').submit()">Punctuality</a> {{ endorsements.punctuality }}</p>
-<p><a href="#" onClick="document.getElementById('participation_skill').submit()">Participation</a> {{ endorsements.participation }}</p>
-<p><a href="#" onClick="document.getElementById('teamwork_skill').submit()">Teamwork</a> {{ endorsements.teamwork }}</p>
+<p><a href="#" onClick="document.getElementById('leadership_skill').submit()">Leadership</a> {{ endorsements.leadership }} | School Highest: </p>
+<p><a href="#" onClick="document.getElementById('respect_skill').submit()">Respect</a> {{ endorsements.respect }} | School Highest: </p>
+<p><a href="#" onClick="document.getElementById('punctuality_skill').submit()">Punctuality</a> {{ endorsements.punctuality }} | School Highest: </p>
+<p><a href="#" onClick="document.getElementById('participation_skill').submit()">Participation</a> {{ endorsements.participation }} | School Highest: </p>
+<p><a href="#" onClick="document.getElementById('teamwork_skill').submit()">Teamwork</a> {{ endorsements.teamwork }} | School Highest: </p>
 
 <form id="leadership_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='leadership' %}">
     {% csrf_token %}
