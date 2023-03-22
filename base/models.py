@@ -146,9 +146,9 @@ class Vote (models.Model):
 
 class Karma (models.Model):
     student= models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
+    score = models.IntegerField(default=100)
 
-    @property
-    def score(self):
+    def update_score(self):
         karma=100 #default karma score is 100
         reviews=Review.objects.filter(student=self.student)
         for review in reviews:
@@ -165,7 +165,9 @@ class Karma (models.Model):
         part= Endorsement.objects.filter(student=self.student, participation=True).count()
         team= Endorsement.objects.filter(student=self.student, teamwork=True).count()
         karma= karma + (lead*10) + (respect*10) + (punc*10) + (part*10) + (team*10)
-        return karma
+
+        self.score = karma
+        self.save()
     
     def __str__(self):
         return 'student: %s score: %s' % (self.student.name, self.score)
