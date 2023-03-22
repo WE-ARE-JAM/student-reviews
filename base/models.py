@@ -205,3 +205,13 @@ class Staff_Inbox (models.Model):
     def __str__(self):
         return 'staff: %s message: %s' % (self.staff, self.message)
 
+
+
+class Activity (models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    message = models.TextField()
+    action = models.TextField()
+    created_at= models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '%s staff: %s message: %s action: %s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff, self.message, self.action)
