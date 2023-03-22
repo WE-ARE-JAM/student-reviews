@@ -37,7 +37,7 @@ class TestViews(TestCase):
             school=self.school
         )
 
-    def test_login_view(self):
+    def test_admin_login_view(self):
         # admin login, redirect to admin-home
         response = self.client.post(reverse('base:login'), 
             {
@@ -48,6 +48,18 @@ class TestViews(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('base:admin-home'))
 
-        
+    def test_staff_login_view(self):
+        # staff login, redirect to staff-home
+        response = self.client.post(reverse('base:login'), 
+            {
+                'username': 'staff', 
+                'password': 'password123'
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('base:staff-home'))
+
+
+     
 
    
