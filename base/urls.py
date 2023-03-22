@@ -15,6 +15,7 @@ urlpatterns = [
     path('student/<str:student_name>/write-review', views.create_review, name='write-review'),
     path('student/<str:student_name>/endorsement/<str:skill>', views.give_endorsement, name='endorse'),
     path('<int:review_id>/vote/<str:vote_value>', views.vote_review, name='vote-review'),
+    path('leaderboard', views.student_ranking, name='leaderboard'),
     path('dashboard', views.admin_home, name='admin-home'),
     path('unauthorized', views.unauthorized, name='unauthorized'),
 ]

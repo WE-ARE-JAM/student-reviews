@@ -223,6 +223,8 @@ def create_review(request, student_name):
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
+            karma = Karma.objects.get(student=student)
+            karma.update_score()
             stats = Stats.objects.create(review=review) # every review object needs a stats object
             stats.save()
             messages.success(request, 'Your review has been added!')
@@ -256,6 +258,8 @@ def edit_review(request, review_pk):
                 review.is_good = review.rating >= 3
                 review.edited=True
                 review.save()   #hit the database
+                karma = Karma.objects.get(student=student)
+            karma.update_score()
         return redirect('base:staff-home')
 
 
@@ -273,9 +277,13 @@ def vote_review(request, review_id, vote_value):
                 vote.delete()
                 vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
                 vote.save()
+                karma = Karma.objects.get(student=review.student)
+                karma.update_score()
         except Vote.DoesNotExist:
             vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
             vote.save()
+            karma = Karma.objects.get(student=review.student)
+            karma.update_score()
     return redirect('base:student-profile', student_name=review.student.name)
 
 
@@ -300,6 +308,8 @@ def give_endorsement(request, student_name, skill):
             elif skill == 'teamwork':
                 endorsements.teamwork = not endorsements.teamwork
             endorsements.save()
+            karma = Karma.objects.get(student=student)
+            karma.update_score()
         except Endorsement.DoesNotExist:
             endorsements = Endorsement.objects.create(student=student, staff=staff)
             if skill == 'leadership':
@@ -313,8 +323,18 @@ def give_endorsement(request, student_name, skill):
             elif skill == 'teamwork':
                 endorsements.teamwork = not endorsements.teamwork
             endorsements.save()
+            karma = Karma.objects.get(student=student)
+            karma.update_score()
     return redirect('base:student-profile', student_name=student_name)
 
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def student_ranking(request):
+    staff = Staff.objects.get(user=request.user)
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    context = {'students': students}
+    return render(request, 'leaderboard.html', context)
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
