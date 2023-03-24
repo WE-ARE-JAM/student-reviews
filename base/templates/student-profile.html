@@ -41,7 +41,9 @@
     <button type="button" class="btn btn-primary">Write Review</button>
 </a>
 
-<button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+<a href="{% url 'base:recommendation-letter' student.name %}">
+    <button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+</a>
 
 {% if reviews %}
     <p>{{ reviews|length }} review(s).</p>

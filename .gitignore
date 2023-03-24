@@ -135,3 +135,6 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+# OpenAPI key
+OPEN_API_KEY=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

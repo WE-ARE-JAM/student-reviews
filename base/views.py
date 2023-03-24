@@ -4,8 +4,13 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Rank
+from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats
 import csv
+import os
+import openai
+from django.conf import settings
+
+openai.api_key = settings.OPEN_API_KEY
 
 # Callables for user_passes_test()
 
@@ -151,23 +156,37 @@ def student_profile(request, student_name):
     student = Student.objects.get(name=student_name, school=staff.school)
     karma = student.karma
     reviews = Review.objects.filter(student=student)
-    endorsements = {}
-    endorsements['leadership'] = Endorsement.objects.filter(student=student, leadership=True).count()
-    endorsements['respect'] = Endorsement.objects.filter(student=student, respect=True).count()
-    endorsements['punctuality'] = Endorsement.objects.filter(student=student, punctuality=True).count()
-    endorsements['participation'] = Endorsement.objects.filter(student=student, participation=True).count()
-    endorsements['teamwork'] = Endorsement.objects.filter(student=student, teamwork=True).count()
-    
-    students=Student.objects.filter(school=staff.school)
-    max_lead= students.endstats.leadership.max()    
+    endorsement_stats = student.endorsementstats
+
+    highest_endorsements = {
+        'leadership' : 0,
+        'respect' : 0,
+        'punctuality' : 0,
+        'participation' : 0,
+        'teamwork' : 0
+    }
+    all_endorsement_stats = [stats for stats in EndorsementStats.objects.all() if stats.school==staff.school]
+    for stats in all_endorsement_stats:
+        if stats.leadership > highest_endorsements['leadership']:
+            highest_endorsements['leadership'] = stats.leadership
+        if stats.respect > highest_endorsements['respect']:
+            highest_endorsements['respect'] = stats.respect
+        if stats.punctuality > highest_endorsements['punctuality']:
+            highest_endorsements['punctuality'] = stats.punctuality
+        if stats.participation > highest_endorsements['participation']:
+            highest_endorsements['participation'] = stats.participation
+        if stats.teamwork > highest_endorsements['teamwork']:
+            highest_endorsements['teamwork'] = stats.teamwork
 
     context = {
         'student' : student,
         'karma' : karma,
-        'endorsements' : endorsements,
+        'endorsement_stats' : endorsement_stats,
+        'highest_endorsements' : highest_endorsements,
         'reviews' : reviews
     }
     return render(request, 'student-profile.html', context)
+
 
 
 # Write a review for a student
@@ -277,6 +296,57 @@ def give_endorsement(request, student_name, skill):
             endorsements.save()
     return redirect('base:student-profile', student_name=student_name)
 
+#   generate recommendation letters
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def generate_recommendation(request, student_name):
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
+    karma=student.karma
+
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    top_student=students[0] #get student with highest karma score
+    max_karma=top_student.karma
+    rank=karma/max_karma
+
+    if rank>=0.5:
+        type=1  # Excellent
+    elif rank>0:
+        type=2  # Good
+    else:   #negative karma score
+        type=3  # Poor
+
+    if request.method=='GET':
+        try:
+            response= openai.Completion.create(
+                model="text-davinci-003",
+                prompt="Say this is a test",
+                max_tokens=100,
+                temperature=0
+            )
+            for result in response.choices:
+                text=result.text    #to get and keep the last value in the {}
+
+            context={
+                'response':text,
+                'rank':rank,
+                'type':type,
+                'message':"Sucessful post"
+            }
+            return render (request,'recommendation-letter.html',context)
+        except:
+            context={
+                'response':"Server Unavailable",
+                'message':"Exception block"
+            }
+            return render (request,'recommendation-letter.html',context)
+    else:
+        context={
+                'response':"This is a post request",
+                'message':"post request"
+            }
+        return render (request,'recommendation-letter.html',context)
+    
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
@@ -313,8 +383,6 @@ def admin_home(request):
                             karma.save()
                             endstats= EndorsementStats.objects.create(student=student)  # create an endstats object for each student
                             endstats.save()
-                            rank=Rank.objects.create(student=student) #create a rank object for each student
-                            rank.save()
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
