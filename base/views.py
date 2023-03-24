@@ -491,7 +491,7 @@ def generate_recommendation(request, student_name):
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
     top_student=students[0] #get student with highest karma score
     max_karma=top_student.karma
-    rank=karma/max_karma
+    rank=karma.score/max_karma.score
 
     if rank>=0.5:
         type=1  # Excellent
@@ -513,8 +513,6 @@ def generate_recommendation(request, student_name):
 
             context={
                 'response':text,
-                'rank':rank,
-                'type':type,
                 'message':"Sucessful post"
             }
             return render (request,'recommendation-letter.html',context)
