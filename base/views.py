@@ -7,9 +7,8 @@ from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, 
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 import openai
-from django.conf import settings
-
-openai.api_key = settings.OPEN_API_KEY
+import os
+from dotenv import load_dotenv
 
 # Callables for user_passes_test()
 
@@ -484,6 +483,8 @@ def student_ranking(request):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def generate_recommendation(request, student_name):
+    load_dotenv()
+    openai.api_key= os.getenv('OPENAI_API_KEY')
     staff = Staff.objects.get(user=request.user)
     student = Student.objects.get(name=student_name, school=staff.school)
     karma=student.karma
@@ -504,7 +505,7 @@ def generate_recommendation(request, student_name):
         try:
             response= openai.Completion.create(
                 model="text-davinci-003",
-                prompt="Say this is a test",
+                prompt="What is the size of the moon",
                 max_tokens=100,
                 temperature=0
             )
@@ -528,6 +529,7 @@ def generate_recommendation(request, student_name):
                 'message':"post request"
             }
         return render (request,'recommendation-letter.html',context)
+    
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
