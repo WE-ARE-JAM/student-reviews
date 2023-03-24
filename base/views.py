@@ -6,6 +6,10 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
+import openai
+from django.conf import settings
+
+openai.api_key = settings.OPEN_API_KEY
 
 # Callables for user_passes_test()
 
@@ -465,6 +469,8 @@ def give_endorsement(request, student_name, skill):
     return redirect('base:student-profile', student_name=student_name)
 
 
+# Karma Leaderboard
+
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def student_ranking(request):
@@ -472,6 +478,58 @@ def student_ranking(request):
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
     context = {'students': students}
     return render(request, 'leaderboard.html', context)
+
+# Generate Recommendation Letters
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def generate_recommendation(request, student_name):
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
+    karma=student.karma
+
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    top_student=students[0] #get student with highest karma score
+    max_karma=top_student.karma
+    rank=karma/max_karma
+
+    if rank>=0.5:
+        type=1  # Excellent
+    elif rank>0:
+        type=2  # Good
+    else:   #negative karma score
+        type=3  # Poor
+
+    if request.method=='GET':
+        try:
+            response= openai.Completion.create(
+                model="text-davinci-003",
+                prompt="Say this is a test",
+                max_tokens=100,
+                temperature=0
+            )
+            for result in response.choices:
+                text=result.text    #to get and keep the last value in the {}
+
+            context={
+                'response':text,
+                'rank':rank,
+                'type':type,
+                'message':"Sucessful post"
+            }
+            return render (request,'recommendation-letter.html',context)
+        except:
+            context={
+                'response':"Server Unavailable",
+                'message':"Exception block"
+            }
+            return render (request,'recommendation-letter.html',context)
+    else:
+        context={
+                'response':"This is a post request",
+                'message':"post request"
+            }
+        return render (request,'recommendation-letter.html',context)
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
