@@ -494,19 +494,22 @@ def generate_recommendation(request, student_name):
     max_karma=top_student.karma
     rank=karma.score/max_karma.score
 
-    if rank>=0.5:
-        type=1  # Excellent
+    if rank>=0.5:   # Excellent
+        keywords="excellent, exemplary, outstanding, remarkable"
     elif rank>0:
-        type=2  # Good
+        keywords="good, great, well"
     else:   #negative karma score
-        type=3  # Poor
+        keywords="fair"
+    
+    prompt= f"Write a recommendation letter for a student named {student_name} who attended {staff.school} using the words {keywords}"
+    
 
     if request.method=='GET':
         try:
             response= openai.Completion.create(
                 model="text-davinci-003",
-                prompt="What is the size of the moon",
-                max_tokens=100,
+                prompt= prompt,
+                max_tokens=200,
                 temperature=0
             )
             for result in response.choices:
