@@ -509,7 +509,7 @@ def generate_recommendation(request, student_name):
             response= openai.Completion.create(
                 model="text-davinci-003",
                 prompt= prompt,
-                max_tokens=200,
+                max_tokens=1000,
                 temperature=0
             )
             for result in response.choices:
