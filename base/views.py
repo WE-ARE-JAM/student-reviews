@@ -494,8 +494,21 @@ def generate_recommendation(request, student_name):
     max_karma=top_student.karma
     rank=karma.score/max_karma.score
 
+    endorsement_stats= student.endorsementstats
+    qualities=""
+    if endorsement_stats.leadership>0: 
+        qualities+="leadership"
+    if endorsement_stats.respect>0:
+        qualities+="respect"
+    if endorsement_stats.punctuality>0:
+        qualities+="punctuality"
+    if endorsement_stats.participation>0:
+        qualities+="participation"
+    if endorsement_stats.teamwork>0:
+        qualities+="teamwork"
+
     if rank>=0.5:   # Excellent
-        keywords="excellent, exemplary, outstanding, remarkable"
+        keywords="excellent, exemplary, outstanding, remarkable, model"
     elif rank>0:
         keywords="good, great, well"
     else:   #negative karma score
@@ -503,8 +516,9 @@ def generate_recommendation(request, student_name):
     
     prompt= f"Write a recommendation letter for a student named {student_name} who attended {staff.school} using the words {keywords}"
     
+    template=f"Dear [Recipient's Name], I am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}. During this time, I have had the opportunity to observe {student_name}'s exceptional [qualities/traits/skills], which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity]. In addition to {student_name}'s exceptional [qualities/traits/skills], he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application. If you have any further questions or require additional information, please do not hesitate to contact me. Sincerely, {staff.user.get_full_name()}"
 
-    if request.method=='GET':
+    if request.method=='GET' & rank>0:
         try:
             response= openai.Completion.create(
                 model="text-davinci-003",
@@ -526,6 +540,12 @@ def generate_recommendation(request, student_name):
                 'message':"Exception block"
             }
             return render (request,'recommendation-letter.html',context)
+    elif request.method=='GET' & rank<0: 
+        context={
+                'response':"This is a post request",
+                'message':"post request"
+            }
+        return render (request,'recommendation-letter.html',context)
     else:
         context={
                 'response':"This is a post request",
