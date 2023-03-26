@@ -1,7 +1,10 @@
 {% extends "staff-header.html" %}
 
 {% block content %}
-<p>Response  {{response}}</p>
+
+<textarea id="rec_letter", name="rec_letter", rows="30", cols="100">
+    {{response}}
+</textarea>
 
 <p>Message  {{message}}</p>
 

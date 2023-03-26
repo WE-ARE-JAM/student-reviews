@@ -507,10 +507,10 @@ def generate_recommendation(request, student_name):
     if endorsement_stats.teamwork>0:
         qualities.append("teamwork")
     
+    q=""
     if len(qualities)==0:
-        qualities.append("[qualities/traits/skills]")
+        q="[qualities/traits/skills]"
     else:
-        q=""
         length=len(qualities)
         for i in range (length-1):
             q+= qualities[i] +", "
@@ -525,9 +525,9 @@ def generate_recommendation(request, student_name):
     
     prompt= f"Write a recommendation letter for a student named {student_name} who attended {staff.school} using the words {keywords}"
     
-    template=f"Dear [Recipient's Name], I am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}. During this time, I have had the opportunity to observe {student_name}'s exceptional {q}, which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity]. In addition to {student_name}'s exceptional [qualities/traits/skills], he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application. If you have any further questions or require additional information, please do not hesitate to contact me. Sincerely, {staff.user.get_full_name()}"
+    template=f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s exceptional {q}, which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s exceptional {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
 
-    if request.method=='GET' & rank>0:
+    if (request.method=='GET') & (rank>0):  #only use api if student has positive karma
         try:
             response= openai.Completion.create(
                 model="text-davinci-003",
@@ -549,13 +549,13 @@ def generate_recommendation(request, student_name):
                 'message':"Exception block"
             }
             return render (request,'recommendation-letter.html',context)
-    elif request.method=='GET' & rank<0: 
+    elif request.method=='GET' & rank<0: #for students with negative karma
         context={
-                'response':"This is a post request",
-                'message':"post request"
+                'response':template,
+                'message':"Successful"
             }
         return render (request,'recommendation-letter.html',context)
-    else:
+    else:    #request is post
         context={
                 'response':"This is a post request",
                 'message':"post request"
