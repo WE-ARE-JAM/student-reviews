@@ -37,15 +37,11 @@ def login_request(request):
                 user = authenticate(username=username, password=password)
                 if user is not None:
                     login(request, user)
-                    messages.info(request, f'You are now logged in as {username}.')
                     if user.is_superuser:
-                        messages.info(request, 'Superuser logged in')
                         return redirect('base:superuser-home')
                     if is_admin(user):
-                        messages.info(request, 'Admin logged in')
                         return redirect('base:admin-home')
                     if is_staff(user):
-                        messages.info(request, 'Staff logged in')
                         return redirect('base:staff-home')
                 else:
                     messages.error(request, 'Invalid username or password.')
@@ -93,7 +89,7 @@ def admin_register(request):
             form.save()
             messages.success(request, 'Registration successful!')
             return render(request, 'register.html', {'register_form': form})
-        messages.error(request, 'Registration unsuccessful.')
+        messages.error(request, 'Oops, something went wrong :(')
     else:
         form = AdminRegistrationForm()
     return render(request, 'admin-register.html', {'register_form': form})
@@ -113,7 +109,7 @@ def staff_register(request):
             form.save()
             messages.success(request, 'Registration successful!')
             return redirect('base:login')
-        messages.error(request, 'Registration unsuccessful.')
+        messages.error(request, 'Oops, something went wrong :(')
     else:
         form = StaffRegistrationForm()
     return render(request, 'staff-register.html', {'register_form': form})
@@ -240,7 +236,7 @@ def create_review(request, student_name):
                 # action="{}".format(url)
             )
             activity.save()
-            messages.success(request, 'Your review has been added!')
+            messages.success(request, 'Thank you for your review!')
             return redirect('base:student-profile', student_name=student_name)
     else:
         form = ReviewForm()
@@ -508,7 +504,6 @@ def admin_home(request):
                     decoded_file = csv_file.read().decode('utf-8-sig').splitlines()
                     reader = csv.DictReader(decoded_file)
                     for row in reader:
-                        messages.info(request, f"{row}")
                         name = row['name']
                         if not Student.objects.filter(name=name, school=admin.school).exists():
                             student = Student.objects.create(name=name, school=admin.school)
