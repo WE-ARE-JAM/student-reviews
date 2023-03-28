@@ -1,11 +1,51 @@
 {% extends "staff-header.html" %}
-
-{% block content %}
+{%block content%}
+<html lang="en" dir="ltr">
 
 <textarea id="rec_letter", name="rec_letter", rows="30", cols="100">
     {{response}}
 </textarea>
 
+<script src="html2pdf.bundle.min.js"></script>
+
+<script>
+    function get_as_txt(){
+        const letter=document.getElementById('rec_letter').innerHTML;
+        const blob= new Blob([letter], {type:"application/octet-stream"});
+        const href=URL.createObjectURL(blob);
+        const a =Object.assign(document.createElement("a"),{
+            href,
+            style: "display:none",
+            download:"recommendation_letter.txt"
+        });
+        document.body.appendChild(a);
+        a.click();
+        URL.revokeObjectURL(href);
+        a.remove();
+    }
+
+    function get_as_pdf(){
+        document.getElementById('rec_letter').onclick= function(){
+            var letter=document.getElementById('rec_letter').innerHTML;
+
+            var opt={
+                margin:1,
+                filename:'recommendation_letter',
+                html2canvas:{scale:2},
+                jsPDF:{ unit:'in', format: 'letter', orientation:'portrait'}
+            };
+            html2pdf(letter,opt);
+        };
+
+    }
+</script>
+
+<button type="button" class="btn btn-primary" onclick="get_as_txt()">Download</button>
+
+<a href="">
+    <button type="button" class="btn btn-primary">Copy</button>
+</a>
 <p>Message  {{message}}</p>
 
-{% endblock %}
+</html>
+{%endblock%}

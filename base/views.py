@@ -9,6 +9,13 @@ import csv
 import openai
 import os
 from dotenv import load_dotenv
+import random
+
+import io
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from django.template import Context
+from django.http import HttpResponse
 
 # Callables for user_passes_test()
 
@@ -517,17 +524,16 @@ def generate_recommendation(request, student_name):
         q+= "and " + qualities[length-1]
 
     if rank>=0.5:   # Excellent
-        keywords="excellent, exemplary, outstanding, remarkable, model"
-    elif rank>0:
-        keywords="good, great, well"
-    else:   #negative karma score
-        keywords="fair"
+        keywords=["excellent", "exemplary", "outstanding", "remarkable", "model"]
+    else:   # rank<0.5, fair/good
+        keywords=["good", "great", "well", "decent"]
     
-    prompt= f"Write a recommendation letter for a student named {student_name} who attended {staff.school} using the words {keywords}"
+    prompt= f"Write a recommendation letter from {staff.user.get_full_name()} for a student named {student_name} who attended {staff.school} using the words {random.sample(keywords,3)}. "
     
-    template=f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s exceptional {q}, which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s exceptional {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
+    template1=f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s exceptional {q}, which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s exceptional {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
+    template2=f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s good {q}, which make him/her a fair candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s good {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been instrumental in his/her success and have helped identify [him/her] as a good student. Overall, I believe that {student_name} would be an great candidate for [Purpose of Recommendation], and I endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
 
-    if (request.method=='GET') & (rank>0):  #only use api if student has positive karma
+    if request.method=='GET':
         try:
             response= openai.Completion.create(
                 model="text-davinci-003",
@@ -543,25 +549,38 @@ def generate_recommendation(request, student_name):
                 'message':"Sucessful"
             }
             return render (request,'recommendation-letter.html',context)
-        except:
+        except: #switch to template if server is busy
+            if (rank>=0.5):
+                template=template1
+            else:
+                template=template2
             context={
                 'response':template,
                 'message':"Exception block"
             }
             return render (request,'recommendation-letter.html',context)
-    elif request.method=='GET' & rank<0: #for students with negative karma
-        context={
-                'response':template,
-                'message':"Successful"
-            }
-        return render (request,'recommendation-letter.html',context)
     else:    #request is post
         context={
-                'response':"This is a post request",
-                'message':"post request"
+                'response':" ",
+                'message':" "
             }
         return render (request,'recommendation-letter.html',context)
-    
+
+def render_to_pdf(template_src, context_dict):
+    template = get_template(template_src)
+    html  = template.render(context_dict)
+    result = io.BytesIO()
+    pdf = pisa.pisaDocument(io.BytesIO(html.encode("ISO-8859-1")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type='application/pdf')
+    return
+
+#@login_required()
+#@user_passes_test(is_staff, login_url='/unauthorized')
+#def download_recommendation (request, student_name):
+
+#    return render_to_pdf('recommendation-letter.html', context)
+
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
