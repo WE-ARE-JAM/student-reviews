@@ -11,13 +11,7 @@
             {% include "navbar.html" %}
         {% endblock %}
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li{% if message.tag %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        {% include "messages.html" %}
 
         {% if user.is_authenticated %}
             <h1>Welcome, {{ user.username }}</h1>
