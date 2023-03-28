@@ -1,6 +1,10 @@
-{% extends "staff-header.html" %}
+{% extends "header.html" %}
 
 {% block title %}Staff Home{% endblock %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
 
 {% block content %}
 <p>Number of reviews written: {{ num_reviews }}</p>

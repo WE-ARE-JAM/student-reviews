@@ -1,6 +1,10 @@
-{% extends "staff-header.html" %}
+{% extends "header.html" %}
 
 {% block title %}{{ student.name }}{% endblock %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
 
 {% block content %}
 
