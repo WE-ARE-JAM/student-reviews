@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
@@ -255,25 +255,31 @@ def create_review(request, student_name):
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
-def edit_review(request, review_pk):
-    review= Review.objects.get(pk=review_pk)
-    data={
-        'text': review.text,
-        'rating': review.rating
-    }
-    form=ReviewForm(data, initial=data)
-    if request.method=='GET':
-        return render(request, 'edit-review.html', data)
-    else:   #if it was a POST request
-        if form.has_changed():  #checks if the data is different
-            if form.is_valid():
-                review = form.save(commit=False)
-                review.is_good = review.rating >= 3
-                review.edited=True
-                review.save()   #hit the database
-                karma = Karma.objects.get(student=student)
+def edit_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    if request.method == 'POST':
+        form = ReviewForm(instance=review, data=request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.is_good = review.rating >= 3
+            review.edited = True
+            review.save()
+            karma = Karma.objects.get(student=review.student)
             karma.update_score()
-        return redirect('base:staff-home')
+            activity = Activity.objects.create(
+                staff=review.staff,
+                message=f"You edited your review for {review.student.name}.",
+                action=""
+            )
+            activity.save()
+            return redirect('base:student-profile', student_name=review.student.name)
+    else:
+        form = ReviewForm(instance=review)
+    context = {
+        'form' : form,
+        'student' : review.student
+    }
+    return render(request, 'edit-review.html', context)
 
 
 # Vote on a review
