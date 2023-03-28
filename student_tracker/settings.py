@@ -54,7 +54,7 @@ MIDDLEWARE = [
 
 # to be changed when in production
 CSRF_TRUSTED_ORIGINS = [
-        'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us90.gitpod.io',
+        'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us92.gitpod.io',
         'https://8000-wearejam-studentreviews-h6ynxtko5ln.ws-us90.gitpod.io'
     ]
 

@@ -1,0 +1,14 @@
+{% extends "staff-header.html" %}
+
+{% block title %}Student Leaderboard{% endblock %}
+
+{% block content %}
+
+<h1>Student Ranking</h1>
+  <ol>
+    {% for student in students %}
+      <li>{{ student.name }} - {{ student.karma.score }}</li>
+    {% endfor %}
+  </ol>
+
+{% endblock %}

@@ -1,3 +1,23 @@
 {% extends "staff-header.html" %}
 
 {% block title %}Staff Home{% endblock %}
+
+{% block content %}
+<p>Number of reviews written: {{ num_reviews }}</p>
+<p>Number of upvotes received: {{ num_upvotes }}</p>
+<p>Number of downvotes received: {{ num_downvotes }}</p>
+<p>Number of endorsements given: {{ num_endorsements }}</p>
+
+<h1>Activity</h1>
+{% if activities %}
+    <ul>
+        {% for activity in activities %}
+            <p>{{ activity }}</p>
+            <li><a href="">{{ activity.message }}</a></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>You have no activity yet.</p>
+{% endif %}
+
+{% endblock %}

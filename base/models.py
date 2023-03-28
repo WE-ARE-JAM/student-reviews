@@ -93,6 +93,37 @@ class Endorsement (models.Model):   #change to boolean
 
 
 
+# Endorsement Stats Model
+
+class EndorsementStats (models.Model):
+    student = models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
+
+    @property
+    def school(self):
+        return self.student.school
+
+    @property
+    def leadership(self):
+        return Endorsement.objects.filter(student=self.student, leadership=True).count()
+
+    @property
+    def respect(self):
+        return Endorsement.objects.filter(student=self.student, respect=True).count()
+
+    @property
+    def punctuality(self):
+        return Endorsement.objects.filter(student=self.student, punctuality=True).count()
+
+    @property
+    def participation(self):
+        return Endorsement.objects.filter(student=self.student, participation=True).count()
+
+    @property
+    def teamwork(self):
+        return Endorsement.objects.filter(student=self.student, teamwork=True).count()
+
+
+
 # Vote Model
 
 class Vote (models.Model):
@@ -115,9 +146,9 @@ class Vote (models.Model):
 
 class Karma (models.Model):
     student= models.OneToOneField(Student, on_delete=models.CASCADE, primary_key=True)
+    score = models.IntegerField(default=100)
 
-    @property
-    def score(self):
+    def update_score(self):
         karma=100 #default karma score is 100
         reviews=Review.objects.filter(student=self.student)
         for review in reviews:
@@ -134,7 +165,9 @@ class Karma (models.Model):
         part= Endorsement.objects.filter(student=self.student, participation=True).count()
         team= Endorsement.objects.filter(student=self.student, teamwork=True).count()
         karma= karma + (lead*10) + (respect*10) + (punc*10) + (part*10) + (team*10)
-        return karma
+
+        self.score = karma
+        self.save()
     
     def __str__(self):
         return 'student: %s score: %s' % (self.student.name, self.score)
@@ -172,3 +205,13 @@ class Staff_Inbox (models.Model):
     def __str__(self):
         return 'staff: %s message: %s' % (self.staff, self.message)
 
+
+
+class Activity (models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    message = models.TextField()
+    action = models.TextField()
+    created_at= models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return '%s staff: %s message: %s action: %s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff, self.message, self.action)

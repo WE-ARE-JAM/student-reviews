@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
-from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement
+from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 
 # Callables for user_passes_test()
@@ -122,7 +122,36 @@ def staff_register(request):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def staff_home(request):
-    return render(request, 'staff-home.html')
+    staff = Staff.objects.get(user=request.user)
+    reviews = Review.objects.filter(staff=staff)
+    num_reviews = reviews.count()
+    num_upvotes = 0
+    num_downvotes = 0
+    for review in reviews:
+        num_upvotes += review.stats.upvotes
+        num_downvotes += review.stats.downvotes
+    
+    endorsements = Endorsement.objects.filter(staff=staff)
+    num_endorsements_given = 0
+    for endorsement in endorsements:
+        if endorsement.leadership: num_endorsements_given += 1
+        if endorsement.respect: num_endorsements_given += 1
+        if endorsement.punctuality: num_endorsements_given += 1
+        if endorsement.participation: num_endorsements_given += 1
+        if endorsement.teamwork: num_endorsements_given += 1
+
+    activities = Activity.objects.filter(staff=staff)
+    activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+
+    context = {
+        'num_reviews' : num_reviews,
+        'num_upvotes' : num_upvotes,
+        'num_downvotes' : num_downvotes,
+        'num_endorsements' : num_endorsements_given,
+        'activities' : activities
+    }
+    
+    return render(request, 'staff-home.html', context)
 
 
 # Search for students - allows school staff to search for students in their school
@@ -151,17 +180,33 @@ def student_profile(request, student_name):
     student = Student.objects.get(name=student_name, school=staff.school)
     karma = student.karma
     reviews = Review.objects.filter(student=student)
-    endorsements = {}
-    endorsements['leadership'] = Endorsement.objects.filter(student=student, leadership=True).count()
-    endorsements['respect'] = Endorsement.objects.filter(student=student, respect=True).count()
-    endorsements['punctuality'] = Endorsement.objects.filter(student=student, punctuality=True).count()
-    endorsements['participation'] = Endorsement.objects.filter(student=student, participation=True).count()
-    endorsements['teamwork'] = Endorsement.objects.filter(student=student, teamwork=True).count()
-    
+    endorsement_stats = student.endorsementstats
+
+    highest_endorsements = {
+        'leadership' : 0,
+        'respect' : 0,
+        'punctuality' : 0,
+        'participation' : 0,
+        'teamwork' : 0
+    }
+    all_endorsement_stats = [stats for stats in EndorsementStats.objects.all() if stats.school==staff.school]
+    for stats in all_endorsement_stats:
+        if stats.leadership > highest_endorsements['leadership']:
+            highest_endorsements['leadership'] = stats.leadership
+        if stats.respect > highest_endorsements['respect']:
+            highest_endorsements['respect'] = stats.respect
+        if stats.punctuality > highest_endorsements['punctuality']:
+            highest_endorsements['punctuality'] = stats.punctuality
+        if stats.participation > highest_endorsements['participation']:
+            highest_endorsements['participation'] = stats.participation
+        if stats.teamwork > highest_endorsements['teamwork']:
+            highest_endorsements['teamwork'] = stats.teamwork
+
     context = {
         'student' : student,
         'karma' : karma,
-        'endorsements' : endorsements,
+        'endorsement_stats' : endorsement_stats,
+        'highest_endorsements' : highest_endorsements,
         'reviews' : reviews
     }
     return render(request, 'student-profile.html', context)
@@ -182,8 +227,19 @@ def create_review(request, student_name):
             review.student = student
             review.is_good = review.rating >= 3
             review.save()
+            karma = Karma.objects.get(student=student)
+            karma.update_score()
             stats = Stats.objects.create(review=review) # every review object needs a stats object
             stats.save()
+            # url_name = f"'base:student-profile' {student_name}"
+            # action = '<a href="{% ' + 'url ' + url_name + ' %}">'
+            activity = Activity.objects.create(
+                staff=staff,
+                message=f"You wrote a review for {student_name}.",
+                action=""
+                # action="{}".format(url)
+            )
+            activity.save()
             messages.success(request, 'Your review has been added!')
             return redirect('base:student-profile', student_name=student_name)
     else:
@@ -199,23 +255,34 @@ def create_review(request, student_name):
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
-def edit_review(request, review_pk):
-    review= Review.objects.get(pk=review_pk)
-    data={
-        'text': review.text,
-        'rating': review.rating
+def edit_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    staff = Staff.objects.get(user=request.user)
+    if staff != review.staff:
+        return redirect('base:unauthorized')
+    if request.method == 'POST':
+        form = ReviewForm(instance=review, data=request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.is_good = review.rating >= 3
+            review.edited = True
+            review.save()
+            karma = Karma.objects.get(student=review.student)
+            karma.update_score()
+            activity = Activity.objects.create(
+                staff=review.staff,
+                message=f"You edited your review for {review.student.name}.",
+                action=""
+            )
+            activity.save()
+            return redirect('base:student-profile', student_name=review.student.name)
+    else:
+        form = ReviewForm(instance=review)
+    context = {
+        'form' : form,
+        'student' : review.student
     }
-    form=ReviewForm(data, initial=data)
-    if request.method=='GET':
-        return render(request, 'edit-review.html', data)
-    else:   #if it was a POST request
-        if form.has_changed():  #checks if the data is different
-            if form.is_valid():
-                review = form.save(commit=False)
-                review.is_good = review.rating >= 3
-                review.edited=True
-                review.save()   #hit the database
-        return redirect('base:staff-home')
+    return render(request, 'edit-review.html', context)
 
 
 # Vote on a review
@@ -232,9 +299,37 @@ def vote_review(request, review_id, vote_value):
                 vote.delete()
                 vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
                 vote.save()
+                karma = Karma.objects.get(student=review.student)
+                karma.update_score()
+                if vote_value == "UP":
+                    activity = Activity.objects.create(
+                        staff=review.staff,
+                        message=f"Your review for {review.student.name} received an upvote."
+                    )
+                    activity.save()
+                elif vote_value == "DOWN":
+                    activity = Activity.objects.create(
+                        staff=review.staff,
+                        message=f"Your review for {review.student.name} received a downvote."
+                    )
+                    activity.save()
         except Vote.DoesNotExist:
             vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
             vote.save()
+            karma = Karma.objects.get(student=review.student)
+            karma.update_score()
+            if vote_value == "UP":
+                activity = Activity.objects.create(
+                    staff=review.staff,
+                    message=f"Your review for {review.student.name} received an upvote."
+                )
+                activity.save()
+            elif vote_value == "DOWN":
+                activity = Activity.objects.create(
+                    staff=review.staff,
+                    message=f"Your review for {review.student.name} received a downvote."
+                )
+                activity.save()
     return redirect('base:student-profile', student_name=review.student.name)
 
 
@@ -250,30 +345,142 @@ def give_endorsement(request, student_name, skill):
             endorsements = Endorsement.objects.get(student=student, staff=staff)
             if skill == 'leadership':
                 endorsements.leadership = not endorsements.leadership
+                if endorsements.leadership:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You gave a leadership endorsement to {student_name}.",
+                        action=""
+                    )
+                    activity.save()
+                else:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You removed a leadership endorsement from {student_name}.",
+                        action=""
+                    )
+                    activity.save()
             elif skill == 'respect':
                 endorsements.respect = not endorsements.respect
+                if endorsements.respect:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You gave a respect endorsement to {student_name}.",
+                        action=""
+                    )
+                    activity.save()
+                else:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You removed a respect endorsement from {student_name}.",
+                        action=""
+                    )
+                    activity.save()
             elif skill == 'punctuality':
                 endorsements.punctuality = not endorsements.punctuality
+                if endorsements.punctuality:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You gave a punctuality endorsement to {student_name}.",
+                        action=""
+                    )
+                    activity.save()
+                else:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You removed a punctuality endorsement from {student_name}.",
+                        action=""
+                    )
+                    activity.save()
             elif skill == 'participation':
                 endorsements.participation = not endorsements.participation
+                if endorsements.participation:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You gave a participation endorsement to {student_name}.",
+                        action=""
+                    )
+                    activity.save()
+                else:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You removed a participation endorsement from {student_name}.",
+                        action=""
+                    )
+                    activity.save()
             elif skill == 'teamwork':
                 endorsements.teamwork = not endorsements.teamwork
+                if endorsements.teamwork:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You gave a teamwork endorsement to {student_name}.",
+                        action=""
+                    )
+                    activity.save()
+                else:
+                    activity = Activity.objects.create(
+                        staff=staff,
+                        message=f"You removed a teamwork endorsement from {student_name}.",
+                        action=""
+                    )
+                    activity.save()
             endorsements.save()
+            karma = Karma.objects.get(student=student)
+            karma.update_score()
         except Endorsement.DoesNotExist:
             endorsements = Endorsement.objects.create(student=student, staff=staff)
             if skill == 'leadership':
-                endorsements.leadership = not endorsements.leadership
+                endorsements.leadership = True
+                activity = Activity.objects.create(
+                    staff=staff,
+                    message=f"You gave a leadership endorsement to {student_name}.",
+                    action=""
+                )
+                activity.save()
             elif skill == 'respect':
-                endorsements.respect = not endorsements.respect
+                endorsements.respect = True
+                activity = Activity.objects.create(
+                    staff=staff,
+                    message=f"You gave a respect endorsement to {student_name}.",
+                    action=""
+                )
+                activity.save()
             elif skill == 'punctuality':
-                endorsements.punctuality = not endorsements.punctuality
+                endorsements.punctuality = True
+                activity = Activity.objects.create(
+                    staff=staff,
+                    message=f"You gave a punctuality endorsement to {student_name}.",
+                    action=""
+                )
+                activity.save()
             elif skill == 'participation':
-                endorsements.participation = not endorsements.participation
+                endorsements.participation = True
+                activity = Activity.objects.create(
+                    staff=staff,
+                    message=f"You gave a participation endorsement to {student_name}.",
+                    action=""
+                )
+                activity.save()
             elif skill == 'teamwork':
-                endorsements.teamwork = not endorsements.teamwork
+                endorsements.teamwork = True
+                activity = Activity.objects.create(
+                    staff=staff,
+                    message=f"You gave a teamwork endorsement to {student_name}.",
+                    action=""
+                )
+                activity.save()
             endorsements.save()
+            karma = Karma.objects.get(student=student)
+            karma.update_score()
     return redirect('base:student-profile', student_name=student_name)
 
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def student_ranking(request):
+    staff = Staff.objects.get(user=request.user)
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    context = {'students': students}
+    return render(request, 'leaderboard.html', context)
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
 
@@ -308,6 +515,8 @@ def admin_home(request):
                             student.save()
                             karma = Karma.objects.create(student=student) # create a karma object for each student
                             karma.save()
+                            endorsement_stats = EndorsementStats.objects.create(student=student)  # create an endorsementstats object for each student
+                            endorsement_stats.save()
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
