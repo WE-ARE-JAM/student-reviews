@@ -14,10 +14,6 @@
         {% endblock %}
 
         {% include "messages.html" %}
-
-        {% if user.is_authenticated %}
-            <h1>Welcome, {{ user.username }}</h1>
-        {% endif %}
         
         {% block content %}
 

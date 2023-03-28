@@ -6,6 +6,10 @@
 </li>
 {% endblock %}
 
+{% block dropdown_items %}
+<a class="dropdown-item" href="/profile">Dashboard</a>
+{% endblock %}
+
 {% block search_bar %}
 <form class="form-inline my-2 my-lg-0" action="{% url 'base:student-search' %}" method="GET">
     <input class="form-control mr-sm-2" type="search" placeholder="Search..." aria-label="Search" name="query">
