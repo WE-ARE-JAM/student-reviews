@@ -257,6 +257,9 @@ def create_review(request, student_name):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def edit_review(request, review_id):
     review = get_object_or_404(Review, id=review_id)
+    staff = Staff.objects.get(user=request.user)
+    if staff != review.staff:
+        return redirect('base:unauthorized')
     if request.method == 'POST':
         form = ReviewForm(instance=review, data=request.POST)
         if form.is_valid():
