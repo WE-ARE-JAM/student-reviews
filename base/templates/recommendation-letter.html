@@ -6,8 +6,6 @@
     {{response}}
 </textarea>
 
-<script src="html2pdf.bundle.min.js"></script>
-
 <script>
     function get_as_txt(){
         const letter=document.getElementById('rec_letter').innerHTML;
@@ -40,7 +38,9 @@
     }
 </script>
 
-<button type="button" class="btn btn-primary" onclick="get_as_txt()">Download</button>
+<a href="{% url 'base:download-recommendation' response=response %}">
+    <button type="button" class="btn btn-primary">Download</button>
+</a>
 
 <a href="">
     <button type="button" class="btn btn-primary">Copy</button>

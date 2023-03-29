@@ -11,6 +11,9 @@ import os
 from dotenv import load_dotenv
 import random
 
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+
 import io
 from xhtml2pdf import pisa
 from django.template.loader import get_template
@@ -572,14 +575,22 @@ def render_to_pdf(template_src, context_dict):
     result = io.BytesIO()
     pdf = pisa.pisaDocument(io.BytesIO(html.encode("ISO-8859-1")), result)
     if not pdf.err:
-        return HttpResponse(result.getvalue(), content_type='application/pdf')
+        result.seek(0)
+        return FileResponse(result, as_attachment=True, filename='recommendation_letter.pdf')
     return
 
-#@login_required()
-#@user_passes_test(is_staff, login_url='/unauthorized')
-#def download_recommendation (request, student_name):
 
-#    return render_to_pdf('recommendation-letter.html', context)
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def download_recommendation (request, response):
+    dict=[]
+    dict=response.split('\n')
+
+    context={
+        'dict':dict
+    }
+
+    return render_to_pdf('download-recommendation.html', context)
 
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
