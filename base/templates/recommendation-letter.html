@@ -7,45 +7,46 @@
 </textarea>
 
 <script>
-    function get_as_txt(){
-        const letter=document.getElementById('rec_letter').innerHTML;
-        const blob= new Blob([letter], {type:"application/octet-stream"});
-        const href=URL.createObjectURL(blob);
-        const a =Object.assign(document.createElement("a"),{
-            href,
-            style: "display:none",
-            download:"recommendation_letter.txt"
-        });
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(href);
-        a.remove();
+    function copy() {
+        // Get the text field
+        var copyText=document.getElementById("rec_letter").value;
+        document.getElementById("rec_letter").innerHTML=copyText;
+
+        copyText = document.getElementById("rec_letter");
+
+        // Select the text field
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text inside the text field
+        navigator.clipboard.writeText(copyText.value);
+
+        // Alert the copied text
+        alert("Copied!");
     }
 
-    function get_as_pdf(){
-        document.getElementById('rec_letter').onclick= function(){
-            var letter=document.getElementById('rec_letter').innerHTML;
+    function get_response(){
+        var response=document.getElementById("rec_letter").value;
+        document.getElementById("rec_letter").innerHTML=response;
+        var href=`{% url 'base:download-recommendation' response="${response}" %}`;
 
-            var opt={
-                margin:1,
-                filename:'recommendation_letter',
-                html2canvas:{scale:2},
-                jsPDF:{ unit:'in', format: 'letter', orientation:'portrait'}
-            };
-            html2pdf(letter,opt);
-        };
-
+        alert (href);
+        //const a =Object.assign(document.createElement("a"),{
+        //    href,
+        //    style: "display:none",
+        //});
+        //document.body.appendChild(a);
+        //a.click();
+        //a.remove();
     }
+
 </script>
 
 <a href="{% url 'base:download-recommendation' response=response %}">
     <button type="button" class="btn btn-primary">Download</button>
 </a>
 
-<a href="">
-    <button type="button" class="btn btn-primary">Copy</button>
-</a>
-<p>Message  {{message}}</p>
+<button type="button" class="btn btn-primary" onclick="copy()">Copy</button>
 
 </html>
 {%endblock%}

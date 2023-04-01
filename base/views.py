@@ -569,14 +569,14 @@ def generate_recommendation(request, student_name):
             }
         return render (request,'recommendation-letter.html',context)
 
-def render_to_pdf(template_src, context_dict):
+def render_to_pdf(template_src, context_dict, name):
     template = get_template(template_src)
     html  = template.render(context_dict)
     result = io.BytesIO()
     pdf = pisa.pisaDocument(io.BytesIO(html.encode("ISO-8859-1")), result)
     if not pdf.err:
         result.seek(0)
-        return FileResponse(result, as_attachment=True, filename='recommendation_letter.pdf')
+        return FileResponse(result, as_attachment=True, filename=name)
     return
 
 
@@ -585,12 +585,12 @@ def render_to_pdf(template_src, context_dict):
 def download_recommendation (request, response):
     dict=[]
     dict=response.split('\n')
-
+ 
     context={
         'dict':dict
     }
 
-    return render_to_pdf('download-recommendation.html', context)
+    return render_to_pdf('download-recommendation.html', context, name="recommendation_letter.pdf")
 
 
 # ------------------ END OF SCHOOL STAFF VIEWS ----------------------
