@@ -4,10 +4,14 @@ from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from datetime import datetime
 from django.urls import reverse
-from base.models import Admin, School, Staff, Student, Review
+from base.models import Admin, School, Staff, Student, Review, Endorsement, EndorsementStats, Vote
 from base.forms import AdminRegistrationForm
 from django.core.exceptions import ValidationError
 
+
+#
+#   ADMIN MODEL TESTS
+#
 class AdminModelTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(name='ASJA')
@@ -34,7 +38,9 @@ class AdminModelTests(TestCase):
         self.admin.delete()
         self.assertFalse(Admin.objects.filter(id=admin_id).exists())
 
-
+#
+#   STAFF MODEL TESTS
+#
 class StaffModelTests(TestCase):
     def setUp(self):
         self.school = School.objects.create(name='PRES')
@@ -55,7 +61,9 @@ class StaffModelTests(TestCase):
         self.assertEqual(self.staff.school, self.school)
         self.assertEqual(str(self.staff), 'Test User : PRES')
 
-
+#
+#   STUDENT MODEL TESTS
+#
 class StudentModelTest(TestCase):
     @classmethod
     def setUp(cls):
@@ -85,9 +93,10 @@ class StudentModelTest(TestCase):
         self.assertIsInstance(student._meta.get_field('school'), models.ForeignKey)
         self.assertEquals(student.school, StudentModelTest.school)
 
-
+#
+#   REVIEW MODEL TESTS
+#
 class ReviewModelTest(TestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.school = School.objects.create(name='ASJA')
@@ -126,4 +135,107 @@ class ReviewModelTest(TestCase):
     def test_review_deleted_default_value(self):
         default_deleted = self.review._meta.get_field('deleted').default
         self.assertFalse(default_deleted)
+
+#
+#   ENDORSEMENT MODEL TESTS
+#
+class EndorsementModelTest(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(name='ASJA')
+        self.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.staff = Staff.objects.create(user=self.user, school=self.school)
+        self.student = Student.objects.create(name = "Jane Doe",school=self.school)
+        self.endorsement = Endorsement.objects.create(leadership=True, respect=False, punctuality=True,
+                                                       participation=False, teamwork=True, student=self.student,
+                                                       staff=self.staff)
+
+    def test_endorsement_attributes(self):
+        self.assertEqual(self.endorsement.leadership, True)
+        self.assertEqual(self.endorsement.respect, False)
+        self.assertEqual(self.endorsement.punctuality, True)
+        self.assertEqual(self.endorsement.participation, False)
+        self.assertEqual(self.endorsement.teamwork, True)
+        self.assertEqual(self.endorsement.student, self.student)
+        self.assertEqual(self.endorsement.staff, self.staff)
+
+    def test_endorsement_string_representation(self):
+        self.assertEqual(str(self.endorsement), f"staff: {self.staff.user.get_full_name()} leadership: True respect: False punctuality: True participation: False teamwork: True")
+
+    def test_endorsement_default_attributes(self):
+        endorsement = Endorsement.objects.create(student=self.student, staff=self.staff)
+        self.assertEqual(endorsement.leadership, False)
+        self.assertEqual(endorsement.respect, False)
+        self.assertEqual(endorsement.punctuality, False)
+        self.assertEqual(endorsement.participation, False)
+        self.assertEqual(endorsement.teamwork, False)
+
+#
+#   ENDORSEMENT STATS TESTS
+#
+class EndorsementStatsModelTest(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(name='ASJA')
+        self.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.staff = Staff.objects.create(user=self.user, school=self.school)
+        self.student = Student.objects.create(name = "John Doe",school=self.school)
+        Endorsement.objects.create(leadership=True, respect=False, punctuality=True,
+                                    participation=False, teamwork=True, student=self.student,
+                                    staff=self.staff)
+
+    def test_endorsement_stats_attributes(self):
+        endorsement_stats = EndorsementStats.objects.create(student=self.student)
+        self.assertEqual(endorsement_stats.school, self.school)
+        self.assertEqual(endorsement_stats.leadership, 1)
+        self.assertEqual(endorsement_stats.respect, 0)
+        self.assertEqual(endorsement_stats.punctuality, 1)
+        self.assertEqual(endorsement_stats.participation, 0)
+        self.assertEqual(endorsement_stats.teamwork, 1)
+
+    def test_endorsement_stats_no_endorsements(self):
+        student = Student.objects.create(name="Jane Doe", school=self.school)
+        endorsement_stats = EndorsementStats.objects.create(student=student)
+        self.assertEqual(endorsement_stats.leadership, 0)
+        self.assertEqual(endorsement_stats.respect, 0)
+        self.assertEqual(endorsement_stats.punctuality, 0)
+        self.assertEqual(endorsement_stats.participation, 0)
+        self.assertEqual(endorsement_stats.teamwork, 0)
+
+#
+#   VOTE MODEL TESTS
+#
+class VoteModelTest(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(name='ASJA')
+        self.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.staff = Staff.objects.create(user=self.user, school=self.school)
+        self.student = Student.objects.create(name = "John Doe",school=self.school)
+        self.review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+    
+    def test_vote_creation(self):
+        vote = Vote.objects.create(staff=self.staff, review=self.review, value="UP")
+        self.assertEqual(vote.staff, self.staff)
+        self.assertEqual(vote.review, self.review)
+        self.assertEqual(vote.value, "UP")
+    
+    def test_vote_string_representation(self):
+        vote = Vote.objects.create(staff=self.staff, review=self.review, value="DOWN")
+        self.assertEqual(str(vote), f'staff: {self.review.staff} review: {self.review} value: DOWN')
 
