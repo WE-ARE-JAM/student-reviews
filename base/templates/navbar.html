@@ -5,29 +5,29 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarText">
         {% if user.is_authenticated %}
-        <ul class="nav nav-tabs mr-auto">
-            {% block nav_items %}{% endblock %}
-        </ul>
-        {% block search_bar %}{% endblock %}
-        <ul class="nav nav-tabs justify-content-end">
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{ user.username }}</a>
-                <div class="dropdown-menu">
-                    {% block dropdown_items %}{% endblock %}
-                    <a class="dropdown-item" href="/logout">Logout</a>
-                </div>
-            </li>
-        </ul>
+            <ul class="nav nav-tabs mr-auto">
+                {% block nav_items %}{% endblock %}
+            </ul>
+            {% block search_bar %}{% endblock %}
+            <ul class="nav nav-tabs justify-content-end">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Welcome, {{ user.username }}</a>
+                    <div class="dropdown-menu">
+                        {% block dropdown_items %}{% endblock %}
+                        <a class="dropdown-item" href="/logout">Logout</a>
+                    </div>
+                </li>
+            </ul>
         {% else %}
-        <ul class="nav nav-tabs mr-auto"></ul>
-        <ul class="nav nav-tabs justify-content-end">
-            <li class="nav-item">
-                <a class="nav-link" href="/register">Register</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="/login">Login</a>
-            </li>
-        </ul>
+            <ul class="nav nav-tabs mr-auto"></ul>
+            <ul class="nav nav-tabs justify-content-end">
+                <li class="nav-item">
+                    <a class="nav-link" href="/register">Register</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/login">Login</a>
+                </li>
+            </ul>
         {% endif %}
     </div>
 </nav>
