@@ -6,6 +6,12 @@ from crispy_forms.layout import Submit
 from .models import Admin, Staff, School, Review
 
 
+class SchoolRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = School
+        fields = ('name',)
+
+
 # form for registering school admins (to be used by superusers only)
 class AdminRegistrationForm(UserCreationForm):
     school = forms.ModelChoiceField(queryset=School.objects.all(), required=True)

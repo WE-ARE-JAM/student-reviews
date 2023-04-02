@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
+from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 
@@ -78,6 +78,30 @@ def unauthorized(request):
 
 # ------------------ SUPERUSER VIEWS ----------------------
 
+@login_required()
+@user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
+def superuser_home(request):
+    return render(request, 'superuser-home.html')
+
+
+
+@login_required()
+@user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
+def school_register(request):
+    if request.method == 'POST':
+        form = SchoolRegistrationForm(request.POST)
+        if form.is_valid():
+            school = form.save(commit=False)
+            school.save()
+            messages.success(request, 'School registration successful!')
+            return redirect('base:superuser-home')
+        messages.error(request, 'Oops, something went wrong :(')
+    else:
+        form = SchoolRegistrationForm()
+    return render(request, 'school-register.html', {'form' : form})
+
+
+
 # Admin registration view - allows authenticated superusers to create school admin accounts
 
 @login_required()
@@ -87,12 +111,12 @@ def admin_register(request):
         form = AdminRegistrationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Registration successful!')
-            return render(request, 'register.html', {'register_form': form})
+            messages.success(request, 'Admin registration successful!')
+            return redirect('base:superuser-home')
         messages.error(request, 'Oops, something went wrong :(')
     else:
         form = AdminRegistrationForm()
-    return render(request, 'admin-register.html', {'register_form': form})
+    return render(request, 'admin-register.html', {'register_form' : form})
 
 # ------------------ END OF SUPERUSER VIEWS ----------------------
 
