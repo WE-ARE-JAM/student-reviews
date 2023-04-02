@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group, User
 from django.utils import timezone
 from datetime import datetime
 from django.urls import reverse
-from base.models import Admin, School, Staff, Student, Review, Endorsement, EndorsementStats, Vote
+from base.models import Admin, School, Staff, Student, Review, Endorsement, EndorsementStats, Vote, Stats, Staff_Inbox, Activity
 from base.forms import AdminRegistrationForm
 from django.core.exceptions import ValidationError
 
@@ -238,4 +238,119 @@ class VoteModelTest(TestCase):
     def test_vote_string_representation(self):
         vote = Vote.objects.create(staff=self.staff, review=self.review, value="DOWN")
         self.assertEqual(str(vote), f'staff: {self.review.staff} review: {self.review} value: DOWN')
+
+#
+#   STATS MODEL TESTS
+#
+class StatsModelTest(TestCase):
+    
+    def setUp(self):
+        self.school = School.objects.create(name='ASJA')
+        self.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.staff = Staff.objects.create(user=self.user, school=self.school)
+
+        #student with votes on review
+        self.student = Student.objects.create(name = "John Doe",school=self.school)
+        self.review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        self.stats = Stats.objects.create(review=self.review)
+        self.vote1 = Vote.objects.create(staff=self.staff, review=self.review, value='UP')
+        self.vote2 = Vote.objects.create(staff=self.staff, review=self.review, value='DOWN')
+
+        #student without votes on review
+        self.student2 = Student.objects.create(name = "Jane Doe",school=self.school)
+        self.review_empty = Review.objects.create(staff=self.staff, student=self.student2, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        self.stats_empty = Stats.objects.create(review=self.review_empty)
+
+    def test_upvotes(self):
+        self.assertEqual(self.stats.upvotes, 1)
+        
+    def test_downvotes(self):
+        self.assertEqual(self.stats.downvotes, 1)
+        
+    def test_upvotes_multiple_votes(self):
+        Vote.objects.create(staff=self.staff, review=self.review, value='UP')
+        self.assertEqual(self.stats.upvotes, 2)
+        
+    def test_downvotes_multiple_votes(self):
+        Vote.objects.create(staff=self.staff, review=self.review, value='DOWN')
+        self.assertEqual(self.stats.downvotes, 2)
+        
+    def test_upvotes_no_votes(self):
+        self.assertEqual(self.stats_empty.upvotes, 0)
+        
+    def test_downvotes_no_votes(self):
+        self.assertEqual(self.stats_empty.downvotes, 0)
+
+#
+#   STAFFINBOX MODEL TESTS
+#
+class StaffInboxTest(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(name='ASJA')
+        self.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.staff = Staff.objects.create(user=self.user, school=self.school)
+        self.staff_inbox = Staff_Inbox.objects.create(staff=self.staff, message='Test message')
+
+    def test_staff_inbox_str(self):
+        self.assertEqual(str(self.staff_inbox), 'staff: Test User : ASJA message: Test message')
+
+    def test_staff_inbox_staff(self):
+        self.assertEqual(self.staff_inbox.staff, self.staff)
+
+    def test_staff_inbox_message(self):
+        self.assertEqual(self.staff_inbox.message, 'Test message')
+
+#
+#   ACTIVITY MODEL TESTS
+#
+class ActivityModelTestCase(TestCase):
+    def setUp(self):
+        self.school = School.objects.create(name='ASJA')
+        self.user = User.objects.create_user(
+            username='asja',
+            email='asja@gmail.com',
+            password='testpassword',
+            first_name='Test',
+            last_name='User'
+        )
+        self.staff = Staff.objects.create(user=self.user, school=self.school)
+
+    def test_str_method(self):
+        activity = Activity.objects.create(staff=self.staff, message='Some message', action='Some action')
+        expected_output = '{} staff: {} message: {} action: {}'.format(
+            timezone.localtime(activity.created_at).strftime('%d/%m/%Y, %H:%M'),
+            self.staff,
+            'Some message',
+            'Some action'
+        )
+        self.assertEqual(str(activity), expected_output)
+        
+    def test_created_at(self):
+        activity = Activity.objects.create(staff=self.staff, message='Some message', action='Some action')
+        self.assertTrue(activity.created_at)
+        
+    def test_staff_foreign_key(self):
+        activity = Activity.objects.create(staff=self.staff, message='Some message', action='Some action')
+        self.assertEqual(activity.staff, self.staff)
+        
+    def test_message_field(self):
+        activity = Activity.objects.create(staff=self.staff, message='Some message', action='Some action')
+        self.assertEqual(activity.message, 'Some message')
+        
+    def test_action_field(self):
+        activity = Activity.objects.create(staff=self.staff, message='Some message', action='Some action')
+        self.assertEqual(activity.action, 'Some action')
+
 
