@@ -10,16 +10,16 @@
 <div class="container py-5 d-flex flex-column">
     <h1>Activity</h1>
     {% if activities %}
+        <div class="list-group">
         {% for activity in activities %}
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <h5 class="card-title">{{ activity.message }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{ activity.timestamp }}</h6>
-                    </div>
+            <div class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <h5>{{ activity.message }}</h5>
+                    <small class="text-muted">{{ activity.timestamp }}</small>
                 </div>
             </div>
         {% endfor %}
+        </div>
     {% else %}
         <p>You have no activity yet.</p>
     {% endif %}
