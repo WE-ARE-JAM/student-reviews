@@ -215,3 +215,7 @@ class Activity (models.Model):
 
     def __str__(self):
         return '%s staff: %s message: %s action: %s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff, self.message, self.action)
+    
+    @property
+    def timestamp(self):
+        return '%s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"))
