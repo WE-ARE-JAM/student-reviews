@@ -7,21 +7,30 @@
 {% endblock %}
 
 {% block content %}
-<p>Number of reviews written: {{ num_reviews }}</p>
-<p>Number of upvotes received: {{ num_upvotes }}</p>
-<p>Number of downvotes received: {{ num_downvotes }}</p>
-<p>Number of endorsements given: {{ num_endorsements }}</p>
+<div class="container py-5">
+    <p>Number of reviews written: {{ num_reviews }}</p>
+    <p>Number of upvotes received: {{ num_upvotes }}</p>
+    <p>Number of downvotes received: {{ num_downvotes }}</p>
+    <p>Number of endorsements given: {{ num_endorsements }}</p>
+</div>
 
-<h1>Activity</h1>
-{% if activities %}
-    <ul>
+<div class="container py-5 d-flex flex-column">
+    <h1>Activity</h1>
+    {% if activities %}
         {% for activity in activities %}
-            <p>{{ activity }}</p>
-            <li><a href="">{{ activity.message }}</a></li>
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title">{{ activity.message }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ activity.timestamp }}</h6>
+                    </div>
+                    <a href="{% url 'base:student-profile' activity.parameter %}" class="card-link">See profile</a>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
-{% else %}
-    <p>You have no activity yet.</p>
-{% endif %}
+    {% else %}
+        <p>You have no activity yet.</p>
+    {% endif %}
+</div>
 
 {% endblock %}
