@@ -35,7 +35,7 @@ class AdminRegistrationForm(UserCreationForm):
         admin_group, created = Group.objects.get_or_create(name="ADMIN")
         user.groups.add(admin_group)
 
-        return user
+        return admin
 
 
 # form for registering school staff
@@ -61,7 +61,7 @@ class StaffRegistrationForm(UserCreationForm):
         staff_group, created = Group.objects.get_or_create(name="STAFF")
         user.groups.add(staff_group)
 
-        return user
+        return staff
 
     #checks if email already exists in the database
     def clean_email(self):
