@@ -6,4 +6,22 @@
     {% include "superuser-nav.html" %}
 {% endblock %}
 
-{% block content %}{% endblock %}
+{% block content %}
+<div class="container py-5 d-flex flex-column">
+    <h1>Activity</h1>
+    {% if activities %}
+        {% for activity in activities %}
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title">{{ activity.message }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ activity.timestamp }}</h6>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You have no activity yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -81,7 +81,14 @@ def unauthorized(request):
 @login_required()
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def superuser_home(request):
-    return render(request, 'superuser-home.html')
+    activities = Activity.objects.filter(user=request.user)
+    activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+
+    context = {
+        'activities' : activities
+    }
+
+    return render(request, 'superuser-home.html', context)
 
 
 
@@ -93,6 +100,11 @@ def school_register(request):
         if form.is_valid():
             school = form.save(commit=False)
             school.save()
+            activity = Activity.objects.create(
+                user=request.user,
+                message=f"{school.name} was registered.",
+            )
+            activity.save()
             messages.success(request, 'School registration successful!')
             return redirect('base:superuser-home')
         messages.error(request, 'Oops, something went wrong :(')
@@ -110,7 +122,12 @@ def admin_register(request):
     if request.method == 'POST':
         form = AdminRegistrationForm(request.POST)
         if form.is_valid():
-            form.save()
+            admin = form.save()
+            activity = Activity.objects.create(
+                user=request.user,
+                message=f"Admin {admin.user.username} for {admin.school} was registered.",
+            )
+            activity.save()
             messages.success(request, 'Admin registration successful!')
             return redirect('base:superuser-home')
         messages.error(request, 'Oops, something went wrong :(')
@@ -253,13 +270,10 @@ def create_review(request, student_name):
             karma.update_score()
             stats = Stats.objects.create(review=review) # every review object needs a stats object
             stats.save()
-            # url_name = f"'base:student-profile' {student_name}"
-            # action = '<a href="{% ' + 'url ' + url_name + ' %}">'
             activity = Activity.objects.create(
                 user=user,
                 message=f"You wrote a review for {student_name}.",
                 parameter=f"{student_name}"
-                # action="{}".format(url)
             )
             activity.save()
             messages.success(request, 'Thank you for your review!')
