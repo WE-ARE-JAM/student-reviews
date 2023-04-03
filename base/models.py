@@ -208,13 +208,13 @@ class Staff_Inbox (models.Model):
 
 
 class Activity (models.Model):
-    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=3) # change default when in production
     message = models.TextField()
-    action = models.TextField()
     created_at= models.DateTimeField(auto_now_add=True)
+    parameter = models.TextField()
 
     def __str__(self):
-        return '%s staff: %s message: %s action: %s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff, self.message, self.action)
+        return '%s user: %s message: %s parameter: %s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.user, self.message, self.parameter)
     
     @property
     def timestamp(self):

@@ -142,7 +142,8 @@ def staff_register(request):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def staff_home(request):
-    staff = Staff.objects.get(user=request.user)
+    user = request.user
+    staff = Staff.objects.get(user=user)
     reviews = Review.objects.filter(staff=staff)
     num_reviews = reviews.count()
     num_upvotes = 0
@@ -160,7 +161,7 @@ def staff_home(request):
         if endorsement.participation: num_endorsements_given += 1
         if endorsement.teamwork: num_endorsements_given += 1
 
-    activities = Activity.objects.filter(staff=staff)
+    activities = Activity.objects.filter(user=user)
     activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
 
     context = {
@@ -237,7 +238,8 @@ def student_profile(request, student_name):
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def create_review(request, student_name):
-    staff = Staff.objects.get(user=request.user)
+    user = request.user
+    staff = Staff.objects.get(user=user)
     student = Student.objects.get(name=student_name, school=staff.school)
     if request.method == 'POST':
         form = ReviewForm(request.POST)
@@ -254,9 +256,9 @@ def create_review(request, student_name):
             # url_name = f"'base:student-profile' {student_name}"
             # action = '<a href="{% ' + 'url ' + url_name + ' %}">'
             activity = Activity.objects.create(
-                staff=staff,
+                user=user,
                 message=f"You wrote a review for {student_name}.",
-                action=""
+                parameter=f"{student_name}"
                 # action="{}".format(url)
             )
             activity.save()
@@ -277,7 +279,8 @@ def create_review(request, student_name):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def edit_review(request, review_id):
     review = get_object_or_404(Review, id=review_id)
-    staff = Staff.objects.get(user=request.user)
+    user = request.user
+    staff = Staff.objects.get(user=user)
     if staff != review.staff:
         return redirect('base:unauthorized')
     if request.method == 'POST':
@@ -290,9 +293,9 @@ def edit_review(request, review_id):
             karma = Karma.objects.get(student=review.student)
             karma.update_score()
             activity = Activity.objects.create(
-                staff=review.staff,
+                user=user,
                 message=f"You edited your review for {review.student.name}.",
-                action=""
+                parameter=f"{review.student.name}"
             )
             activity.save()
             return redirect('base:student-profile', student_name=review.student.name)
@@ -312,7 +315,8 @@ def edit_review(request, review_id):
 def vote_review(request, review_id, vote_value):
     if request.method == "POST":
         review = Review.objects.get(id=review_id)
-        staff = Staff.objects.get(user=request.user)
+        user = request.user
+        staff = Staff.objects.get(user=user)
         try:
             vote = Vote.objects.get(staff=staff, review=review)
             if vote.value != vote_value:
@@ -323,14 +327,16 @@ def vote_review(request, review_id, vote_value):
                 karma.update_score()
                 if vote_value == "UP":
                     activity = Activity.objects.create(
-                        staff=review.staff,
-                        message=f"Your review for {review.student.name} received an upvote."
+                        user=user,
+                        message=f"Your review for {review.student.name} received an upvote.",
+                        parameter=f"{review.student.name}"
                     )
                     activity.save()
                 elif vote_value == "DOWN":
                     activity = Activity.objects.create(
-                        staff=review.staff,
-                        message=f"Your review for {review.student.name} received a downvote."
+                        user=user,
+                        message=f"Your review for {review.student.name} received a downvote.",
+                        parameter=f"{review.student.name}"
                     )
                     activity.save()
         except Vote.DoesNotExist:
@@ -340,14 +346,16 @@ def vote_review(request, review_id, vote_value):
             karma.update_score()
             if vote_value == "UP":
                 activity = Activity.objects.create(
-                    staff=review.staff,
-                    message=f"Your review for {review.student.name} received an upvote."
+                    user=user,
+                    message=f"Your review for {review.student.name} received an upvote.",
+                    parameter=f"{review.student.name}"
                 )
                 activity.save()
             elif vote_value == "DOWN":
                 activity = Activity.objects.create(
-                    staff=review.staff,
-                    message=f"Your review for {review.student.name} received a downvote."
+                    user=user,
+                    message=f"Your review for {review.student.name} received a downvote.",
+                    parameter=f"{review.student.name}"
                 )
                 activity.save()
     return redirect('base:student-profile', student_name=review.student.name)
@@ -359,7 +367,8 @@ def vote_review(request, review_id, vote_value):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def give_endorsement(request, student_name, skill):
     if request.method == "POST":
-        staff = Staff.objects.get(user=request.user)
+        user = request.user
+        staff = Staff.objects.get(user=user)
         student = Student.objects.get(name=student_name, school=staff.school)
         try:
             endorsements = Endorsement.objects.get(student=student, staff=staff)
@@ -367,80 +376,80 @@ def give_endorsement(request, student_name, skill):
                 endorsements.leadership = not endorsements.leadership
                 if endorsements.leadership:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You gave a leadership endorsement to {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
                 else:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You removed a leadership endorsement from {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
             elif skill == 'respect':
                 endorsements.respect = not endorsements.respect
                 if endorsements.respect:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You gave a respect endorsement to {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
                 else:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You removed a respect endorsement from {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
             elif skill == 'punctuality':
                 endorsements.punctuality = not endorsements.punctuality
                 if endorsements.punctuality:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You gave a punctuality endorsement to {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
                 else:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You removed a punctuality endorsement from {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
             elif skill == 'participation':
                 endorsements.participation = not endorsements.participation
                 if endorsements.participation:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You gave a participation endorsement to {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
                 else:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You removed a participation endorsement from {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
             elif skill == 'teamwork':
                 endorsements.teamwork = not endorsements.teamwork
                 if endorsements.teamwork:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You gave a teamwork endorsement to {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
                 else:
                     activity = Activity.objects.create(
-                        staff=staff,
+                        user=user,
                         message=f"You removed a teamwork endorsement from {student_name}.",
-                        action=""
+                        parameter=f"{student.name}"
                     )
                     activity.save()
             endorsements.save()
@@ -451,41 +460,41 @@ def give_endorsement(request, student_name, skill):
             if skill == 'leadership':
                 endorsements.leadership = True
                 activity = Activity.objects.create(
-                    staff=staff,
+                    user=user,
                     message=f"You gave a leadership endorsement to {student_name}.",
-                    action=""
+                    parameter=f"{student.name}"
                 )
                 activity.save()
             elif skill == 'respect':
                 endorsements.respect = True
                 activity = Activity.objects.create(
-                    staff=staff,
+                    user=user,
                     message=f"You gave a respect endorsement to {student_name}.",
-                    action=""
+                    parameter=f"{student.name}"
                 )
                 activity.save()
             elif skill == 'punctuality':
                 endorsements.punctuality = True
                 activity = Activity.objects.create(
-                    staff=staff,
+                    user=user,
                     message=f"You gave a punctuality endorsement to {student_name}.",
-                    action=""
+                    parameter=f"{student.name}"
                 )
                 activity.save()
             elif skill == 'participation':
                 endorsements.participation = True
                 activity = Activity.objects.create(
-                    staff=staff,
+                    user=user,
                     message=f"You gave a participation endorsement to {student_name}.",
-                    action=""
+                    parameter=f"{student.name}"
                 )
                 activity.save()
             elif skill == 'teamwork':
                 endorsements.teamwork = True
                 activity = Activity.objects.create(
-                    staff=staff,
+                    user=user,
                     message=f"You gave a teamwork endorsement to {student_name}.",
-                    action=""
+                    parameter=f"{student.name}"
                 )
                 activity.save()
             endorsements.save()
