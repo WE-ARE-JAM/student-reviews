@@ -2,8 +2,12 @@ from django.test import TestCase
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from base.models import Admin, School, School, Staff, Admin
-from base.forms import AdminRegistrationForm, StaffRegistrationForm, ReviewForm
+from base.forms import AdminRegistrationForm, StaffRegistrationForm, ReviewForm, UploadCsvForm
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
+import io, csv
+
+
 
 
 
@@ -137,6 +141,21 @@ class StaffRegistrationFormTests(TestCase):
         user = form.save()
         staff = Staff.objects.get(user=user)
         self.assertEqual(staff.school, self.school)
+
+
+class UploadCsvFormTest(TestCase):
+
+    def test_upload_csv_form_valid(self):
+        csv_file = SimpleUploadedFile("file.csv", b"file_content", content_type="text/csv")
+        form_data = {'csv_file': csv_file}
+        form = UploadCsvForm(data=form_data, files=form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_upload_csv_form_missing_file(self):
+        form_data = {}
+        form = UploadCsvForm(data=form_data)
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['csv_file'], ['This field is required.'])
 
 
 class ReviewFormTests(TestCase):
