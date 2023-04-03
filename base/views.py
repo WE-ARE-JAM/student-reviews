@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm
+from .forms import AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 import openai
@@ -548,10 +548,11 @@ def generate_recommendation(request, student_name):
                 text=result.text    #to get and keep the last value in the {}
 
             context={
-                'response':text,
-                'message':"Sucessful"
+                'response':text
             }
-            return render (request,'recommendation-letter.html',context)
+            #return render (request,'recommendation-letter.html',context)
+            form= LetterForm(context, initial=context)
+            return render (request, 'recommendation-letter.html', {'form':form})
         except: #switch to template if server is busy
             if (rank>=0.5):
                 template=template1
@@ -562,12 +563,12 @@ def generate_recommendation(request, student_name):
                 'message':"Exception block"
             }
             return render (request,'recommendation-letter.html',context)
+
     else:    #request is post
-        context={
-                'response':" ",
-                'message':" "
-            }
-        return render (request,'recommendation-letter.html',context)
+        response=request.POST['response']
+        return redirect ('base:download-recommendation', response=response)
+
+
 
 def render_to_pdf(template_src, context_dict, name):
     template = get_template(template_src)
@@ -584,12 +585,11 @@ def render_to_pdf(template_src, context_dict, name):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def download_recommendation (request, response):
     dict=[]
-    dict=response.split('\n')
- 
+    dict=response.split('\r\n')
+
     context={
         'dict':dict
     }
-
     return render_to_pdf('download-recommendation.html', context, name="recommendation_letter.pdf")
 
 

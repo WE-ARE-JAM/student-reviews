@@ -2,17 +2,20 @@
 {%block content%}
 <html lang="en" dir="ltr">
 
-<textarea id="rec_letter", name="rec_letter", rows="30", cols="100">
-    {{response}}
-</textarea>
+{% load crispy_forms_tags %}
+<form method="POST">
+    {% csrf_token %}
+    {{ form.response }}
+    <button class="btn btn-primary" type="submit">Download</button>
+</form>
 
 <script>
     function copy() {
         // Get the text field
-        var copyText=document.getElementById("rec_letter").value;
-        document.getElementById("rec_letter").innerHTML=copyText;
+        var copyText=document.getElementById("id_response").value;
+        document.getElementById("id_response").innerHTML=copyText;
 
-        copyText = document.getElementById("rec_letter");
+        copyText = document.getElementById("id_response");
 
         // Select the text field
         copyText.select();
@@ -25,26 +28,7 @@
         alert("Copied!");
     }
 
-    function get_response(){
-        var response=document.getElementById("rec_letter").value;
-        document.getElementById("rec_letter").innerHTML=response;
-        var href=`{% url 'base:download-recommendation' response="${response}" %}`;
-
-        alert (href);
-        //const a =Object.assign(document.createElement("a"),{
-        //    href,
-        //    style: "display:none",
-        //});
-        //document.body.appendChild(a);
-        //a.click();
-        //a.remove();
-    }
-
 </script>
-
-<a href="{% url 'base:download-recommendation' response=response %}">
-    <button type="button" class="btn btn-primary">Download</button>
-</a>
 
 <button type="button" class="btn btn-primary" onclick="copy()">Copy</button>
 
