@@ -1,7 +1,15 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 from .models import Admin, Staff, School, Review
+
+
+class SchoolRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = School
+        fields = ('name',)
 
 
 # form for registering school admins (to be used by superusers only)
@@ -27,7 +35,7 @@ class AdminRegistrationForm(UserCreationForm):
         admin_group, created = Group.objects.get_or_create(name="ADMIN")
         user.groups.add(admin_group)
 
-        return user
+        return admin
 
 
 # form for registering school staff
@@ -53,7 +61,7 @@ class StaffRegistrationForm(UserCreationForm):
         staff_group, created = Group.objects.get_or_create(name="STAFF")
         user.groups.add(staff_group)
 
-        return user
+        return staff
 
     #checks if email already exists in the database
     def clean_email(self):
@@ -65,7 +73,16 @@ class StaffRegistrationForm(UserCreationForm):
 
 # form for uploading .csv file with student names
 class UploadCsvForm(forms.Form):
-    csv_file = forms.FileField(label='Select a CSV file')
+    csv_file = forms.FileField(label='Select a CSV file ')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'upload-csv'
+        self.helper.form_class = 'blueForms'
+        self.helper.form_method = 'post'
+
+        self.helper.add_input(Submit('submit', 'Upload'))
 
 
 # form for writing a review for a student
