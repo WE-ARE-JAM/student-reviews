@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from .models import Admin, Staff, School, Review
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
 
 
 # form for registering school admins (to be used by superusers only)
@@ -64,8 +66,19 @@ class StaffRegistrationForm(UserCreationForm):
 
 
 # form for uploading .csv file with student names
+# form for uploading .csv file with student names
 class UploadCsvForm(forms.Form):
-    csv_file = forms.FileField(label='Select a CSV file')
+    csv_file = forms.FileField(label='Select a CSV file ')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'upload-csv'
+        self.helper.form_class = 'blueForms'
+        self.helper.form_method = 'post'
+
+        self.helper.add_input(Submit('submit', 'Upload'))
+
 
 
 # form for writing a review for a student
