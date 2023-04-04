@@ -84,18 +84,21 @@
             </form>
 
             <div class="card">
-                <div class="card-header d-flex justify-content-between">
-                    <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }} | {{ review.timestamp }}</h5>
-                    <p><a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()">Upvote</a> {{ review.stats.upvotes }}   |   <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()">Downvote</a> {{ review.stats.downvotes }}</p>
+                <div class="card-header">
+                    <div class="d-flex justify-content-between">
+                        <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }}</h5>
+                        <p><a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()">Upvote</a> {{ review.stats.upvotes }}   |   <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()">Downvote</a> {{ review.stats.downvotes }}</p>
+                    </div>
                 </div>
                 <div class="card-body">
                     <h6>Rating: {{ review.rating }}/5</h6>
                     <p class="card-text">{{ review.text }}</p>
-                    {% if user == review.staff.user %}
-                        <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Reviewed on {{ review.timestamp }}</small>
+                        {% if user == review.staff.user %}
                             <a href="{% url 'base:edit-review' review.id %}" class="btn btn-primary">Edit</a>
-                        </div>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             
