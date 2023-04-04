@@ -2,8 +2,7 @@ import json
 from django.test import TestCase, Client, RequestFactory
 from django.urls import reverse
 from django.contrib.auth.models import User, Group, AnonymousUser
-from django.contrib.messages.middleware import MessageMiddleware
-from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib import messages
 from base.models import School, Admin, Staff, Student
 from base.forms import StaffRegistrationForm
 from base.views import *
@@ -60,6 +59,18 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         client.logout()
 
+    def test_admin_wrong_pass(self):
+        client = Client()
+        client.login(username='admin', password='word123')
+        response = client.get(reverse('base:admin-home'), follow=True)
+
+        # message = list(response.context.get('messages'))[0]
+        # self.assertEqual(message.tags, "success")
+        # self.assertTrue("success text" in message.message)
+
+        self.assertEqual(response.status_code, 302)
+        client.logout()
+
     def test_staff_login_view(self):
         client = Client()
         client.login(username='staff', password='password123')
@@ -67,32 +78,7 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         client.logout()
 
-
-    def test_staff_registration_view(self):
-        form_data = {
-            'first_name': 'Harry',
-            'last_name': 'Doe',
-            'username': 'staff2',
-            'email': 'staff2@test.com',
-            'password1': 'aMuchMoreComplicatedPassword',
-            'password2': 'aMuchMoreComplicatedPassword',
-            'school': self.school.pk
-        }
-        form = StaffRegistrationForm(data=form_data)
-        if form.is_valid():
-            user = form.save()
-            client = Client()
-            client.login(username='staff2', password='aMuchMoreComplicatedPassword')
-            response = client.get(reverse('base:staff-home'))
-            self.assertEqual(response.status_code, 200)
-            self.assertEqual(User.objects.count(), 3)
-            self.assertEqual(Staff.objects.count(), 2)
-            client.logout()
-        else:
-            print(form.errors)
-        self.assertEqual(form.is_valid(), True)
-
-    def test_staff_registration2(self):
+    def test_staff_registration(self):
         client = Client()
         form_data = {
             'first_name': 'Barry',
