@@ -73,7 +73,11 @@ class Review (models.Model):
     deleted= models.BooleanField(default=False)
 
     def __str__(self):
-        return '%s staff: %s student: %s text: %s rating: %d' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff.user.get_full_name(), self.student.name, self.text, self.rating)    
+        return '%s staff: %s student: %s text: %s rating: %d' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff.user.get_full_name(), self.student.name, self.text, self.rating)
+
+    @property
+    def timestamp(self):
+        return '%s' % (timezone.localtime(self.created_at).strftime("%b %-d, %Y"))
 
 
 
@@ -218,4 +222,4 @@ class Activity (models.Model):
     
     @property
     def timestamp(self):
-        return '%s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"))
+        return '%s' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %-I:%M%p"))
