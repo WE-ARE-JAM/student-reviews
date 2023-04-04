@@ -394,6 +394,10 @@ def vote_review(request, review_id, vote_value):
                         parameter=f"{review.student.name}"
                     )
                     activity.save()
+            elif vote.value == vote_value:
+                vote.delete()
+                karma = Karma.objects.get(student=review.student)
+                karma.update_score()
         except Vote.DoesNotExist:
             vote = Vote.objects.create(staff=staff, review=review, value=vote_value)
             vote.save()
@@ -568,6 +572,7 @@ def student_ranking(request):
     context = {'students': students}
     return render(request, 'leaderboard.html', context)
 
+
 # Generate Recommendation Letters
 
 @login_required()
@@ -690,7 +695,6 @@ def generate_recommendation(request, student_name):
     else:    #request is post
         response=request.POST['response']
         return redirect ('base:download-recommendation', response=response)
-
 
 
 def render_to_pdf(template_src, context_dict, name):
