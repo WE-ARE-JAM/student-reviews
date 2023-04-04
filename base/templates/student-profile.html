@@ -11,7 +11,9 @@
 <div class="container py-5">
     <div class="d-flex justify-content-between">
         <h1>{{ student.name }}</h1>
-        <button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+        <a href="{% url 'base:recommendation-letter' student.name %}">
+            <button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+        </a>
     </div>
     <h3>Karma: {{ karma.score }}</h3>
     <div class="row">
@@ -55,6 +57,9 @@
             </ul>
         </div>
     </div>
+    
+    <p>Student Summary</p>
+    <p>{{ summary }}</p>
     
     <div class="d-flex justify-content-between">
         <h2>Reviews</h2>
@@ -117,6 +122,5 @@
     {% csrf_token %}
     <input type="hidden">
 </form>
-
 
 {% endblock %}
