@@ -10,11 +10,27 @@
 
 <div class="container py-5">
     <h1>Student Ranking</h1>
-    <ol class="list-group list-group-numbered">
-    {% for student in students %}
-        <li class="list-group-item"><a href="{% url 'base:student-profile' student.name %}" class="list-group-item-action">{{ student.name }} - {{ student.karma.score }}</a></li>
-    {% endfor %}
-    </ol>
+    <h6>Total: {{ students|length }} student(s)</h6>
+    <table class="table table-hover">
+        <thead class="table-light">
+            <tr>
+                <th style="text-align: center">Rank</th>
+                <th>Name</th>
+                <th style="text-align: center">Karma Score</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for student in students %}
+            <tr>
+                <td style="text-align: center">{{ forloop.counter }}</td>
+                <td>
+                    <a href="{% url 'base:student-profile' student.name %}">{{ student.name }}</a>
+                </td>
+                <td style="text-align: center">{{ student.karma.score }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 
 {% endblock %}
