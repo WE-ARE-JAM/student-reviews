@@ -341,14 +341,14 @@ def vote_review(request, review_id, vote_value):
                 karma.update_score()
                 if vote_value == "UP":
                     activity = Activity.objects.create(
-                        user=user,
+                        user=review.staff.user,
                         message=f"Your review for {review.student.name} received an upvote.",
                         parameter=f"{review.student.name}"
                     )
                     activity.save()
                 elif vote_value == "DOWN":
                     activity = Activity.objects.create(
-                        user=user,
+                        user=review.staff.user,
                         message=f"Your review for {review.student.name} received a downvote.",
                         parameter=f"{review.student.name}"
                     )
@@ -360,14 +360,14 @@ def vote_review(request, review_id, vote_value):
             karma.update_score()
             if vote_value == "UP":
                 activity = Activity.objects.create(
-                    user=user,
+                    user=review.staff.user,
                     message=f"Your review for {review.student.name} received an upvote.",
                     parameter=f"{review.student.name}"
                 )
                 activity.save()
             elif vote_value == "DOWN":
                 activity = Activity.objects.create(
-                    user=user,
+                    user=review.staff.user,
                     message=f"Your review for {review.student.name} received a downvote.",
                     parameter=f"{review.student.name}"
                 )
