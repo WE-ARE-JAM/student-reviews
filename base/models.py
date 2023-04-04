@@ -50,7 +50,6 @@ class Staff (models.Model):
 class Student (models.Model):
     name= models.CharField(max_length=100, null=False)
     active= models.BooleanField(default=True)
-    profile_pic = models.ImageField(null=True, default="avatar.svg")
     school= models.ForeignKey(School,on_delete=models.CASCADE)
     
     def __str__(self):
