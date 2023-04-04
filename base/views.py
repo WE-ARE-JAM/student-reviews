@@ -531,10 +531,8 @@ def generate_recommendation(request, student_name):
     max_karma=top_student.karma
     rank=karma.score/max_karma.score
 
-    set= Review.objects.filter(student=student, is_good=True).order_by('-rating')
+    set= Review.objects.filter(student=student, is_good=True).order_by('-rating')   #get positive reviews, chatGPT wont write a recommendation letter with negative reviews
     if set: 
-        load_dotenv()
-        openai.api_key= os.getenv('OPENAI_API_KEY')
         if set.count()>5:   #reduce set size to 5 for cheaper API calls
             set= set[:5]
         text=""
