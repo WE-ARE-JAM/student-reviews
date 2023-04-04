@@ -4,10 +4,17 @@
 
 {% block content %}
 
-<form method="POST" enctype="multipart/form-data">
+<div class="container py-5">
+    <h1>Student Upload</h1>
+    Upload a CSV file with a list of student names.
+    {% load crispy_forms_tags %}
+    {% crispy form form.helper %}
+</div>
+
+<!-- <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="file" name="csv_file">
     <button type="submit">Upload</button>
-</form>
+</form> -->
 
 {% endblock %}

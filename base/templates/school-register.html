@@ -1,0 +1,24 @@
+{% extends "header.html" %}
+
+{% block title %}School Registration{% endblock %}
+
+{% block navbar %}
+    {% include "superuser-nav.html" %}
+{% endblock %}
+
+{% block content %}
+
+{% load crispy_forms_tags %}
+
+<div class="container py-5 d-flex flex-column justify-content-between">
+    {% block heading %}<h1>Register a school</h1>{% endblock %}
+    <form class="school-register-form" method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-primary" type="submit">Register</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,14 +1,20 @@
-{% extends "staff-header.html" %}
+{% extends "header.html" %}
 
 {% block title %}Student Leaderboard{% endblock %}
 
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
+
 {% block content %}
 
-<h1>Student Ranking</h1>
-  <ol>
+<div class="container py-5">
+    <h1>Student Ranking</h1>
+    <ol class="list-group list-group-numbered">
     {% for student in students %}
-      <li>{{ student.name }} - {{ student.karma.score }}</li>
+        <li class="list-group-item"><a href="{% url 'base:student-profile' student.name %}" class="list-group-item-action">{{ student.name }} - {{ student.karma.score }}</a></li>
     {% endfor %}
-  </ol>
+    </ol>
+</div>
 
 {% endblock %}
