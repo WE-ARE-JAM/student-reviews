@@ -10,14 +10,17 @@
     <h1>Search Results</h1>
     {% if search_results %}
         <h6>Found {{ search_results|length }} result(s).</h6>
-        <div class="card-group">
+        <div class="d-flex flex-column">
             {% for result in search_results %}
                 <div class="card">
-                    <img src="{{ result.profile_pic.url }}" class="card-img-top">
                     <div class="card-body">
-                        <h5 class="card-title">{{ result.name }}</h5>
-                        <p class="card-text">Karma score: {{ result.karma.score }}</p>
-                        <a href="{% url 'base:student-profile' result.name %}" class="btn btn-primary">View profile</a>
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ result.name }}</h5>
+                                <a href="{% url 'base:student-profile' result.name %}" class="btn btn-primary">View profile</a>
+                            </div>
+                            <p class="card-text">Karma score: {{ result.karma.score }}</p>
+                        </div>
                     </div>
                 </div>
             {% endfor %}
