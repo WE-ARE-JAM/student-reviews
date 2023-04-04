@@ -231,6 +231,7 @@ def student_profile(request, student_name):
     student = Student.objects.get(name=student_name, school=staff.school)
     karma = student.karma
     reviews = Review.objects.filter(student=student)
+    reviews_list = sorted(list(reviews), key=lambda x: x.created_at, reverse=True)
     endorsement_stats = student.endorsementstats
 
     highest_endorsements = {
@@ -257,7 +258,7 @@ def student_profile(request, student_name):
         load_dotenv()
         openai.api_key= os.getenv('OPENAI_API_KEY')
         reviews= reviews.order_by('-created_at')
-        if reviews.count()>10:  #only use the 10 latest reviews to reduce API cost
+        if reviews.count()>10:  # only use the 10 latest reviews to reduce API cost
             reviews=reviews[:10]
         text=""
         for review in reviews:
@@ -270,7 +271,7 @@ def student_profile(request, student_name):
                 temperature=0
             )
             for result in response.choices:
-                summary=result.text    #to get and keep the last value in the {}
+                summary=result.text    # to get and keep the last value in the {}
 
         except:
             summary="Our servers are unavailable at this time"
@@ -284,7 +285,7 @@ def student_profile(request, student_name):
         'karma' : karma,
         'endorsement_stats' : endorsement_stats,
         'highest_endorsements' : highest_endorsements,
-        'reviews' : reviews,
+        'reviews' : reviews_list,
         'summary': summary,
     }
     return render(request, 'student-profile.html', context)
