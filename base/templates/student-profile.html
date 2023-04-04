@@ -8,13 +8,90 @@
 
 {% block content %}
 
-<p>Karma score: {{ karma.score }}</p>
+<div class="container py-5">
+    <div class="d-flex justify-content-between">
+        <h1>{{ student.name }}</h1>
+        <button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
+    </div>
+    <h3>Karma: {{ karma.score }}</h3>
+    <div class="row">
+        <div class="col-3">
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto d-flex flex-column">
+                        <a href="#" onClick="document.getElementById('leadership_skill').submit()" class="fw-bold">Leadership</a>
+                        School Highest: {{ highest_endorsements.leadership }}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ endorsement_stats.leadership }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto d-flex flex-column">
+                        <a href="#" onClick="document.getElementById('respect_skill').submit()" class="fw-bold">Respect</a>
+                        School Highest: {{ highest_endorsements.respect }}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ endorsement_stats.respect }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto d-flex flex-column">
+                        <a href="#" onClick="document.getElementById('punctuality_skill').submit()" class="fw-bold">Punctuality</a>
+                        School Highest: {{ highest_endorsements.punctuality }}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ endorsement_stats.punctuality }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto d-flex flex-column">
+                        <a href="#" onClick="document.getElementById('participation_skill').submit()" class="fw-bold">Participation</a>
+                        School Highest: {{ highest_endorsements.participation }}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ endorsement_stats.participation }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-start">
+                    <div class="ms-2 me-auto d-flex flex-column">
+                        <a href="#" onClick="document.getElementById('teamwork_skill').submit()" class="fw-bold">Teamwork</a>
+                        School Highest: {{ highest_endorsements.teamwork }}
+                    </div>
+                    <span class="badge bg-primary rounded-pill">{{ endorsement_stats.teamwork }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="d-flex justify-content-between">
+        <h2>Reviews</h2>
+        <a href="{% url 'base:write-review' student.name %}">
+            <button type="button" class="btn btn-primary">Write Review</button>
+        </a>
+    </div>
+    {% if reviews %}
+        <h6>{{ reviews|length }} review(s).</h6>
+        {% for review in reviews %}
+            <form class="upvote id-{{ review.id }}" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='UP' %}">
+                {% csrf_token %}
+                <input type="hidden">
+            </form>
 
-<p><a href="#" onClick="document.getElementById('leadership_skill').submit()">Leadership</a> {{ endorsement_stats.leadership }} | School Highest: {{ highest_endorsements.leadership }}</p>
-<p><a href="#" onClick="document.getElementById('respect_skill').submit()">Respect</a> {{ endorsement_stats.respect }} | School Highest: {{ highest_endorsements.respect }}</p>
-<p><a href="#" onClick="document.getElementById('punctuality_skill').submit()">Punctuality</a> {{ endorsement_stats.punctuality }} | School Highest: {{ highest_endorsements.punctuality }}</p>
-<p><a href="#" onClick="document.getElementById('participation_skill').submit()">Participation</a> {{ endorsement_stats.participation }} | School Highest: {{ highest_endorsements.participation }}</p>
-<p><a href="#" onClick="document.getElementById('teamwork_skill').submit()">Teamwork</a> {{ endorsement_stats.teamwork }} | School Highest: {{ highest_endorsements.teamwork }}</p>
+            <form class="downvote id-{{ review.id }}" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='DOWN' %}">
+                {% csrf_token %}
+                <input type="hidden">
+            </form>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                    <h6>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }} | {{ review.timestamp }}</h6>
+                    <p><a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()">Upvote</a> {{ review.stats.upvotes }}   |   <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()">Downvote</a> {{ review.stats.downvotes }}</p>
+                </div>
+                <div class="card-body">
+                    <h6>Rating: {{ review.rating }}/5</h6>
+                    <p class="card-text">{{ review.text }}</p>
+                    <a href="{% url 'base:edit-review' review.id %}" class="btn btn-primary">Edit</a>
+                </div>
+            </div>
+            
+        {% endfor %}
+    {% else %}
+        <p>No reviews found.</p>
+    {% endif %}
+</div>
 
 <form id="leadership_skill" method="POST" action="{% url 'base:endorse' student_name=student.name skill='leadership' %}">
     {% csrf_token %}
@@ -41,36 +118,5 @@
     <input type="hidden">
 </form>
 
-<a href="{% url 'base:write-review' student.name %}">
-    <button type="button" class="btn btn-primary">Write Review</button>
-</a>
-
-<button type="button" class="btn btn-primary">Generate Recommendation Letter</button>
-
-{% if reviews %}
-    <p>{{ reviews|length }} review(s).</p>
-    <ul>
-        {% for review in reviews %}
-            <div>{{ review }}</div>
-            <div>{{ review.stats }}</div>
-
-            <a href="{% url 'base:edit-review' review.id %}">Edit</a>
-
-            <a href="#" onClick="document.getElementById('likebutton').submit()">Upvote</a>   |   <a href="#" onClick="document.getElementById('dislikebutton').submit()">Downvote</a>
-
-            <form id="likebutton" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='UP' %}">
-                {% csrf_token %}
-                <input type="hidden">
-            </form>
-
-            <form id="dislikebutton" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='DOWN' %}">
-                {% csrf_token %}
-                <input type="hidden">
-            </form>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No reviews found.</p>
-{% endif %}
 
 {% endblock %}
