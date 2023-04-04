@@ -94,7 +94,7 @@
                     <h6>Rating: {{ review.rating }}/5</h6>
                     <p class="card-text">{{ review.text }}</p>
                     <div class="d-flex justify-content-between">
-                        <small class="text-muted">Reviewed on {{ review.timestamp }}</small>
+                        
                         {% if user == review.staff.user %}
                             <a href="{% url 'base:edit-review' review.id %}" class="btn btn-primary">Edit</a>
                         {% endif %}

@@ -95,7 +95,8 @@ def unauthorized(request):
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def superuser_home(request):
     activities = Activity.objects.filter(user=request.user)
-    activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+    if activities:
+        activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
 
     context = {
         'activities' : activities
@@ -263,10 +264,11 @@ def student_profile(request, student_name):
         text=""
         for review in reviews:
             text+=review.text
+        prompt=f"Summarize '{text}'"
         try:
             response= openai.Completion.create(
                 model="text-davinci-003",
-                prompt= f"Summarize {text}",
+                prompt=prompt,
                 max_tokens=1000,
                 temperature=0
             )
@@ -596,17 +598,18 @@ def generate_recommendation(request, student_name):
         text=""
         for r in set:
             text+=r.text
-            try:
-                response= openai.Completion.create(
-                    model="text-davinci-003",
-                    prompt= f"Summarize {text}",
-                    max_tokens=1000,
-                    temperature=0
-                )
-                for result in response.choices:
-                    summary=result.text    #to get and keep the last value in the {}
-            except:
-                summary= set[:1]
+        prompt=f"Summarize '{text}'"
+        try:
+            response= openai.Completion.create(
+                model="text-davinci-003",
+                prompt=prompt,
+                max_tokens=1000,
+                temperature=0
+            )
+            for result in response.choices:
+                summary=result.text    #to get and keep the last value in the {}
+        except:
+            summary= set[:1]
 
     highest_endorsements = {
         'leadership' : 0,

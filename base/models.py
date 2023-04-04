@@ -211,7 +211,7 @@ class Staff_Inbox (models.Model):
 
 
 class Activity (models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=3) # change default when in production
+    user = models.ForeignKey(User, on_delete=models.CASCADE) # change default when in production
     message = models.TextField()
     created_at= models.DateTimeField(auto_now_add=True)
     parameter = models.TextField()
