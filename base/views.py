@@ -254,6 +254,18 @@ def student_profile(request, student_name):
         if stats.teamwork > highest_endorsements['teamwork']:
             highest_endorsements['teamwork'] = stats.teamwork
     
+    voted = []
+    for review in reviews_list:
+        if Vote.objects.filter(staff=staff, review=review).exists():
+            if Vote.objects.get(staff=staff, review=review).value == "UP":
+                voted.append("UP")
+            elif Vote.objects.get(staff=staff, review=review).value == "DOWN":
+                voted.append("DOWN")
+        else:
+            voted.append(None)
+
+    reviews_voted = list(zip(reviews_list, voted))
+    
     if reviews:
         load_dotenv()
         openai.api_key= os.getenv('OPENAI_API_KEY')
@@ -278,14 +290,12 @@ def student_profile(request, student_name):
     else:
         summary="There's not much on this student..."
     
-
-
     context = {
         'student' : student,
         'karma' : karma,
         'endorsement_stats' : endorsement_stats,
         'highest_endorsements' : highest_endorsements,
-        'reviews' : reviews_list,
+        'reviews' : reviews_voted,
         'summary': summary,
     }
     return render(request, 'student-profile.html', context)
