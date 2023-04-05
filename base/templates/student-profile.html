@@ -87,7 +87,15 @@
                 <div class="card-header">
                     <div class="d-flex justify-content-between">
                         <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }}</h5>
-                        <p><a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()">Upvote</a> {{ review.stats.upvotes }}   |   <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()">Downvote</a> {{ review.stats.downvotes }}</p>
+                        <div>
+                            <a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()" id="upvote-btn" class="btn btn-outline-success btn-sm" role="button" data-bs-toggle="button">Upvote
+                                <!-- <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="button">Upvote</button> -->
+                            </a> {{ review.stats.upvotes }}
+                            <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()" id="downvote-btn" class="btn btn-outline-danger btn-sm" role="button" data-bs-toggle="button">Downvote
+                                <!-- <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="button">Downvote</button> -->
+                            </a> {{ review.stats.downvotes }}
+                            <!-- <a href="#" id="test-btn" class="btn btn-outline-primary" role="button" data-bs-toggle="button">Test</a> -->
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -132,5 +140,45 @@
     {% csrf_token %}
     <input type="hidden">
 </form>
+
+<!-- <script type="text/javascript">
+    $('#upvote-btn').on('click', function(){
+        if (!$(this).hasClass('active')){
+            var upIsActive = 'false';
+            localStorage.setItem('active', upIsActive);
+        }
+        if ($(this).hasClass('active')){
+            var upIsActive = 'true';
+            localStorage.setItem('active', upIsActive);
+        }
+    });
+
+    var upIsActive = localStorage.getItem('active');
+    if (upIsActive === 'true'){
+        $('#upvote-btn').addClass('active');
+    }
+    else{
+        $('#upvote-btn .active').removeClass('active');
+    }
+
+    $('#downvote-btn').on('click', function(){
+        if ($(this).hasClass('active')){
+            var downIsActive = 'false';
+            localStorage.setItem('active', downIsActive);
+        }
+        else{
+            var downIsActive = 'true';
+            localStorage.setItem('active', downIsActive);
+        }
+    });
+
+    var downIsActive = localStorage.getItem('active');
+    if (downIsActive === 'true'){
+        $('#upvote-btn').addClass('active');
+    }
+    else{
+        $('#upvote-btn .active').removeClass('active');
+    }
+</script> -->
 
 {% endblock %}
