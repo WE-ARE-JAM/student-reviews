@@ -86,7 +86,7 @@
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between">
-                        <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }}</h5>
+                        <h6>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }} | {{ review.timestamp }}</h6>
                         <p><a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()">Upvote</a> {{ review.stats.upvotes }}   |   <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()">Downvote</a> {{ review.stats.downvotes }}</p>
                     </div>
                 </div>

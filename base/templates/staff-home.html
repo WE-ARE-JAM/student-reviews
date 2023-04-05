@@ -31,7 +31,7 @@
             <a href="{% url 'base:student-profile' activity.parameter %}" class="list-group-item list-group-item-action">
                 <div class="d-flex justify-content-between">
                     <h5>{{ activity.message }}</h5>
-                    
+                    <small class="text-muted">{{ activity.timestamp }}</small>
                 </div>
             </a>
         {% endfor %}
