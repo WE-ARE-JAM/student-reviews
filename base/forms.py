@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout, Field, Row, Column
 from .models import Admin, Staff, School, Review
 
 
@@ -96,7 +96,7 @@ class ReviewForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text'})
+        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text (50 characters minimum)'})
         self.fields['rating'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter rating out of 5'})
     
     def clean_rating(self):
@@ -106,5 +106,18 @@ class ReviewForm(forms.ModelForm):
         return rating
 
 #form for recommendation letter
-class LetterForm (forms.Form):
-    response=forms.CharField(widget=forms.Textarea)
+class LetterForm(forms.Form):
+    response = forms.CharField(widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'letter-form'
+        self.helper.form_class = 'blueForms'
+        self.helper.form_method = 'post'
+        self.helper.form_show_labels = False
+        self.helper.add_input(Submit('submit', 'Download'))
+
+        self.helper.layout = Layout(
+            Field('response', rows='25')
+        )

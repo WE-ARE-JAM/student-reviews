@@ -32,9 +32,9 @@
             </tr>
         </thead>
         <tbody>
-        {% for student in students %}
+        {% for student, rank in students %}
             <tr>
-                <td style="text-align: center">{{ forloop.counter }}</td>
+                <td style="text-align: center">{{ rank }}</td>
                 <td>
                     <a href="{% url 'base:student-profile' student.name %}">{{ student.name }}</a>
                 </td>

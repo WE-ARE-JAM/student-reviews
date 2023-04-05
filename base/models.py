@@ -4,6 +4,7 @@ from django.core.validators import MinLengthValidator
 from django.utils import timezone
 from zoneinfo import ZoneInfo
 from datetime import datetime
+from safedelete.models import SafeDeleteModel, SOFT_DELETE_CASCADE
 
 
 # class User(AbstractUser):
@@ -62,7 +63,9 @@ class Student (models.Model):
 # A Stats object must be created each time a review is created
 #access total upvotes/downvotes by  [review object].stats.upvotes or [review object].stats.downvotes
 
-class Review (models.Model):
+class Review(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+    
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
     text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
@@ -70,7 +73,6 @@ class Review (models.Model):
     is_good= models.BooleanField(null=False)
     created_at= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
-    deleted= models.BooleanField(default=False)
 
     def __str__(self):
         return '%s staff: %s student: %s text: %s rating: %d' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff.user.get_full_name(), self.student.name, self.text, self.rating)
