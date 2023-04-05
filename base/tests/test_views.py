@@ -62,12 +62,7 @@ class ViewTests(TestCase):
     def test_admin_wrong_pass(self):
         client = Client()
         client.login(username='admin', password='word123')
-        response = client.get(reverse('base:admin-home'), follow=True)
-
-        # message = list(response.context.get('messages'))[0]
-        # self.assertEqual(message.tags, "success")
-        # self.assertTrue("success text" in message.message)
-
+        response = client.get(reverse('base:admin-home'))
         self.assertEqual(response.status_code, 302)
         client.logout()
 
