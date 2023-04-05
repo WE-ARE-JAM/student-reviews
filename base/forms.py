@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout, Field, Row, Column
 from .models import Admin, Staff, School, Review
 
 
@@ -108,3 +108,16 @@ class ReviewForm(forms.ModelForm):
 #form for recommendation letter
 class LetterForm(forms.Form):
     response = forms.CharField(widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'letter-form'
+        self.helper.form_class = 'blueForms'
+        self.helper.form_method = 'post'
+        self.helper.form_show_labels = False
+        self.helper.add_input(Submit('submit', 'Download'))
+
+        self.helper.layout = Layout(
+            Field('response', rows='25')
+        )
