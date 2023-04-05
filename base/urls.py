@@ -23,6 +23,7 @@ urlpatterns = [
     path('unauthorized', views.unauthorized, name='unauthorized'),
     path('student/<str:student_name>/recommendation-letter', views.generate_recommendation, name='recommendation-letter'),
     path('student/recommendation-letter/<str:response>', views.download_recommendation, name='download-recommendation'),
+    path('leaderboard/download/<int:query>', views.download_leaderboard, name='download-leaderboard'),
 ]
 
 # call url using path name, eg. url 'base:student-search'

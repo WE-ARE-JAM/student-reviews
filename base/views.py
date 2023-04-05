@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm, LeaderboardForm
+from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 import openai
@@ -572,7 +572,10 @@ def student_ranking(request):
     staff = Staff.objects.get(user=request.user)
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
     query = request.GET.get('query')
-    context={'students':students}
+    context={
+        'students':students,
+        'query':0,
+        }
     if query:
         try:   
             query=int(query)
@@ -589,6 +592,22 @@ def student_ranking(request):
             messages.error(request, m)
     return render(request, 'leaderboard.html', context)
 
+# Download Leaderboard
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def download_leaderboard(request, query):
+    staff = Staff.objects.get(user=request.user)
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    if query==0:
+        context={'students':students}
+    else:
+        while (students[query-1].karma.score==students[query].karma.score): #to show students that have the same karma score as the cut-off 
+                query=query+1
+        students=students[:query]
+        context = {'students': students}
+
+    return render_to_pdf('download-leaderboard.html',context, name="leaderboard.pdf")
 
 
 # Generate Recommendation Letters

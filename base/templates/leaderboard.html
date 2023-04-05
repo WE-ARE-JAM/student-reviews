@@ -18,6 +18,10 @@
     </form>
     {% endblock %}
 
+  
+
+    <a href="{% url 'base:download-leaderboard' query=query %}" class="btn btn-primary">Download</a>
+
     <h6>Total: {{ students|length }} student(s)</h6>
     <table class="table table-hover">
         <thead class="table-light">
