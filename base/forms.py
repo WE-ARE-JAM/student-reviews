@@ -96,7 +96,7 @@ class ReviewForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text'})
+        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text (50 characters minimum)'})
         self.fields['rating'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter rating out of 5'})
     
     def clean_rating(self):
@@ -106,5 +106,5 @@ class ReviewForm(forms.ModelForm):
         return rating
 
 #form for recommendation letter
-class LetterForm (forms.Form):
-    response=forms.CharField(widget=forms.Textarea)
+class LetterForm(forms.Form):
+    response = forms.CharField(widget=forms.Textarea)
