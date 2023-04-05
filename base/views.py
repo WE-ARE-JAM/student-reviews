@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm
+from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm, LeaderboardForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 import openai
@@ -571,8 +571,24 @@ def give_endorsement(request, student_name, skill):
 def student_ranking(request):
     staff = Staff.objects.get(user=request.user)
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
-    context = {'students': students}
+    query = request.GET.get('query')
+    context={'students':students}
+    if query:
+        try:   
+            query=int(query)
+            while (students[query-1].karma.score==students[query].karma.score): #to show students that have the same karma score as the cut-off 
+                query=query+1
+            students=students[:query]
+            context = {
+                'students': students,
+                'query':query,
+                }
+            return render(request, 'leaderboard.html', context)
+        except: #handles 0, >=count and non-numerical input
+            m=f'Enter a number between 1 and {students.count()-1}'
+            messages.error(request, m)
     return render(request, 'leaderboard.html', context)
+
 
 
 # Generate Recommendation Letters

@@ -108,3 +108,13 @@ class ReviewForm(forms.ModelForm):
 #form for recommendation letter
 class LetterForm (forms.Form):
     response=forms.CharField(widget=forms.Textarea)
+
+#form for querying leaderboard
+LEADERBOARD_CHOICES= (
+    ("1", "Top"),
+    ("2", "Bottom"),
+)
+
+class LeaderboardForm (forms.Form):
+    filter= forms.ChoiceField(choices=LEADERBOARD_CHOICES)
+    number=forms.IntegerField()

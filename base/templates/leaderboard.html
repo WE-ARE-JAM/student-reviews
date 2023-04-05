@@ -10,6 +10,14 @@
 
 <div class="container py-5">
     <h1>Student Ranking</h1>
+
+    {% block filter_bar %}
+    <form class="form-inline my-2 my-lg-0" action="{% url 'base:leaderboard' %}" method="GET">
+        <input class="form-control mr-sm-2" type="search" placeholder="Top..." aria-label="Top" name="query">
+            <!-- <button class="btn" type="submit">Search</button> -->
+    </form>
+    {% endblock %}
+
     <h6>Total: {{ students|length }} student(s)</h6>
     <table class="table table-hover">
         <thead class="table-light">
