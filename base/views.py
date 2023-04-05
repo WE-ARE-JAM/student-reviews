@@ -579,34 +579,35 @@ def student_ranking(request):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def generate_recommendation(request, student_name):
     load_dotenv()
-    openai.api_key= os.getenv('OPENAI_API_KEY')
+    openai.api_key = os.getenv('OPENAI_API_KEY')
     staff = Staff.objects.get(user=request.user)
     student = Student.objects.get(name=student_name, school=staff.school)
-    karma=student.karma
+    karma = student.karma
 
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
-    top_student=students[0] #get student with highest karma score
-    max_karma=top_student.karma
-    rank=karma.score/max_karma.score
+    top_student = students[0] # get student with highest karma score
+    max_karma = top_student.karma
+    rank = karma.score/max_karma.score
 
-    set= Review.objects.filter(student=student, is_good=True).order_by('-rating')   #get positive reviews, chatGPT wont write a recommendation letter with negative reviews
+    set= Review.objects.filter(student=student, is_good=True).order_by('-rating')   # get positive reviews, chatGPT wont write a recommendation letter with negative reviews
     if set: 
-        if set.count()>5:   #reduce set size to 5 for cheaper API calls
-            set= set[:5]
-        text=""
+        if set.count()>5:   # reduce set size to 5 for cheaper API calls
+            set = set[:5]
+        text = ""
         for r in set:
-            text+=r.text
-            try:
-                response= openai.Completion.create(
-                    model="text-davinci-003",
-                    prompt= f"Summarize {text}",
-                    max_tokens=1000,
-                    temperature=0
-                )
-                for result in response.choices:
-                    summary=result.text    #to get and keep the last value in the {}
-            except:
-                summary= set[:1]
+            text += r.text
+        prompt = f"Summarize '{text}'"
+        try:
+            response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt=f"Summarize {text}",
+                max_tokens=1000,
+                temperature=0
+            )
+            for result in response.choices:
+                summary = result.text    #to get and keep the last value in the {}
+        except:
+            summary = set[:1]
 
     highest_endorsements = {
         'leadership' : 0,
@@ -615,7 +616,7 @@ def generate_recommendation(request, student_name):
         'participation' : 0,
         'teamwork' : 0
     }
-    endorsement_stats=student.endorsementstats
+    endorsement_stats = student.endorsementstats
 
     all_endorsement_stats = [stats for stats in EndorsementStats.objects.all() if stats.school==staff.school]
     for stats in all_endorsement_stats:
@@ -630,7 +631,7 @@ def generate_recommendation(request, student_name):
         if stats.teamwork > highest_endorsements['teamwork']:
             highest_endorsements['teamwork'] = stats.teamwork
 
-    qualities=[]
+    qualities = []
     if endorsement_stats.leadership>=0.5*highest_endorsements['leadership']: # record qualities if the are at least half of the highest in the school
         qualities.append("leadership")
     if endorsement_stats.respect>=0.5*highest_endorsements['respect']:
@@ -642,58 +643,62 @@ def generate_recommendation(request, student_name):
     if endorsement_stats.teamwork>=0.5*highest_endorsements['teamwork']:
         qualities.append("teamwork")
     
-    q=""
+    q = ""
     if len(qualities)==0:
-        q="[qualities/traits/skills]"
+        q = "[qualities/traits/skills]"
     else:
-        length=len(qualities)
+        length = len(qualities)
         for i in range (length-1):
-            q+= qualities[i] +", "
-        q+= "and " + qualities[length-1]
+            q += qualities[i] +", "
+        q += "and " + qualities[length-1]
 
     if rank>=0.5:   # Excellent
-        keywords=["excellent", "exemplary", "outstanding", "remarkable", "model"]
+        keywords = ["excellent", "exemplary", "outstanding", "remarkable", "model"]
     else:   # rank<0.5, fair/good
-        keywords=["decent", "suitable", "average", "standard", "passable", "adequate", "moderate"]
+        keywords = ["decent", "suitable", "average", "standard", "passable", "adequate", "moderate"]
 
     if set:
-        prompt=f"Based on {summary}, write a recommendation letter from {staff.user.get_full_name()} for a student named {student_name} who attended {staff.school} using words like {random.sample(keywords,3)}"
+        prompt = f"Based on {summary}, write a recommendation letter from {staff.user.get_full_name()} for a student named {student_name} who attended {staff.school} using words like {random.sample(keywords,3)}"
     else:
-        prompt= f"Write a recommendation letter from {staff.user.get_full_name()} for a student named {student_name} who attended {staff.school} using words like {random.sample(keywords,3)}"
+        prompt = f"Write a recommendation letter from {staff.user.get_full_name()} for a student named {student_name} who attended {staff.school} using words like {random.sample(keywords,3)}"
     
-    template1=f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s exceptional {q}, which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s exceptional {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
-    template2=f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s good {q}, which make him/her a fair candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s good {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been instrumental in his/her success and have helped identify [him/her] as a good student. Overall, I believe that {student_name} would be a suitable candidate for [Purpose of Recommendation], and I endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
+    template1 = f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s exceptional {q}, which make him/her an outstanding candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s exceptional {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been critical to his/her success and have helped [him/her] to stand out as an exceptional student. Overall, I believe that {student_name} would be an excellent candidate for [Purpose of Recommendation], and I wholeheartedly endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
+
+    template2 = f"Dear [Recipient's Name],\n\nI am writing to recommend {student_name} for [Purpose of Recommendation] for which he/she has applied. I have had the pleasure of [teaching/supervising/working with] {student_name} for [length of time] at {staff.school}.\n\n During this time, I have had the opportunity to observe {student_name}'s good {q}, which make him/her a fair candidate for [Purpose of Recommendation]. Specifically, [provide specific examples of the student's accomplishments or characteristics that demonstrate their suitability for the program or opportunity].\n\nIn addition to {student_name}'s good {q}, he/she also possesses [other relevant qualities or characteristics, such as strong work ethic, leadership ability, creativity, or interpersonal skills]. These attributes have been instrumental in his/her success and have helped identify [him/her] as a good student. Overall, I believe that {student_name} would be a suitable candidate for [Purpose of Recommendation], and I endorse his/her application.\n\nIf you have any further questions or require additional information, please do not hesitate to contact me.\n\n Sincerely,\n{staff.user.get_full_name()}"
 
     if request.method=='GET':
         try:
-            response= openai.Completion.create(
+            response = openai.Completion.create(
                 model="text-davinci-003",
                 prompt= prompt,
                 max_tokens=1000,
                 temperature=0
             )
             for result in response.choices:
-                text=result.text    #to get and keep the last value in the {}
+                text = result.text    # to get and keep the last value in the {}
 
-            context={
-                'response':text
+            context = {
+                'response' : text
             }
+
             #return render (request,'recommendation-letter.html',context)
-            form= LetterForm(context, initial=context)
+            form = LetterForm(context, initial=context)
             return render (request, 'recommendation-letter.html', {'form':form})
-        except: #switch to template if server is busy
+        except: # switch to template if server is busy
             if (rank>=0.5):
-                template=template1
+                template = template1
             else:
-                template=template2
-            context={
-                'response':template,
-                'message':"Exception block"
+                template = template2
+
+            context = {
+                'response' : template,
+                'message' : "Exception block"
             }
-            return render (request,'recommendation-letter.html',context)
+
+            return render (request, 'recommendation-letter.html', context)
 
     else:    #request is post
-        response=request.POST['response']
+        response = request.POST['response']
         return redirect ('base:download-recommendation', response=response)
 
 
