@@ -754,7 +754,7 @@ def admin_home(request):
                             karma.save()
                             endorsement_stats = EndorsementStats.objects.create(student=student)  # create an endorsementstats object for each student
                             endorsement_stats.save()
-                            messages.success(request, 'Students from your csv file have been successfully added!')
+                    messages.success(request, 'Students from your csv file have been successfully added!')
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
