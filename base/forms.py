@@ -1,9 +1,15 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
-from .models import Admin, Staff, School, Review
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit
+from crispy_forms.layout import Submit, Layout, Field, Row, Column
+from .models import Admin, Staff, School, Review
+
+
+class SchoolRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = School
+        fields = ('name',)
 
 
 # form for registering school admins (to be used by superusers only)
@@ -29,7 +35,7 @@ class AdminRegistrationForm(UserCreationForm):
         admin_group, created = Group.objects.get_or_create(name="ADMIN")
         user.groups.add(admin_group)
 
-        return user
+        return admin
 
 
 # form for registering school staff
@@ -55,7 +61,7 @@ class StaffRegistrationForm(UserCreationForm):
         staff_group, created = Group.objects.get_or_create(name="STAFF")
         user.groups.add(staff_group)
 
-        return user
+        return staff
 
     #checks if email already exists in the database
     def clean_email(self):
@@ -65,7 +71,6 @@ class StaffRegistrationForm(UserCreationForm):
         return email
 
 
-# form for uploading .csv file with student names
 # form for uploading .csv file with student names
 class UploadCsvForm(forms.Form):
     csv_file = forms.FileField(label='Select a CSV file ')
@@ -80,7 +85,6 @@ class UploadCsvForm(forms.Form):
         self.helper.add_input(Submit('submit', 'Upload'))
 
 
-
 # form for writing a review for a student
 class ReviewForm(forms.ModelForm):
     class Meta:
@@ -92,7 +96,7 @@ class ReviewForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text'})
+        self.fields['text'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter review text (50 characters minimum)'})
         self.fields['rating'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Enter rating out of 5'})
     
     def clean_rating(self):
@@ -100,4 +104,20 @@ class ReviewForm(forms.ModelForm):
         if rating < 1 or rating > 5:
             raise forms.ValidationError('Rating must be between 1 and 5.')
         return rating
-    
+
+#form for recommendation letter
+class LetterForm(forms.Form):
+    response = forms.CharField(widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_id = 'letter-form'
+        self.helper.form_class = 'blueForms'
+        self.helper.form_method = 'post'
+        self.helper.form_show_labels = False
+        self.helper.add_input(Submit('submit', 'Download'))
+
+        self.helper.layout = Layout(
+            Field('response', rows='25')
+        )

@@ -4,14 +4,26 @@
 
 {% load crispy_forms_tags %}
 
-<div class="container py-5">
-    <h1>Register</h1>
-    <form method="POST">
-        {% csrf_token %}
-        {{ register_form|crispy }}
-        <button class="btn btn-primary" type="submit">Register</button>
-    </form>
-    {% block login_prompt %}{% endblock %}
+<div class="d-flex flex-column">
+    <div class="container py-5 d-flex flex-column justify-content-between">
+        {% block heading %}<h1>Register</h1>{% endblock %}
+        <form class="register-form" method="POST">
+            {% csrf_token %}
+            {{ register_form|crispy }}
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-primary" type="submit">Register</button>
+            </div>
+        </form>
+        <div class="d-flex justify-content-center">
+            {% block login_prompt %}{% endblock %}
+        </div>
+    </div>
+    
+    {% block footer %}
+    <div class="d-flex justify-content-center contact-info">
+        Don't see your school? Email us at register@rms-jam.com to get your school registered!
+    </div>
+    {% endblock %}
 </div>
 
 {% endblock %}

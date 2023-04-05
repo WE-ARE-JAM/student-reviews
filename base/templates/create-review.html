@@ -1,20 +1,27 @@
-{% extends "staff-header.html" %}
+{% extends "header.html" %}
 
 {% block title %}{{ student.name }}{% endblock %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
 
 {% block content %}
 
 {% load crispy_forms_tags %}
 
-<h1>Write Review</h1>
-<form method="POST">
-    {% csrf_token %}
-    {{ form|crispy }}
-    <button class="btn btn-primary" type="submit">Submit</button>
-</form>
-
-<a href="{% url 'base:student-profile' student.name %}">
-    <button type="button" class="btn btn-primary">Cancel</button>
-</a>
+<div class="container py-5">
+    <h1>Write Review for {{ student.name }}</h1>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'base:student-profile' student.name %}">
+                <button type="button" class="btn btn-primary">Cancel</button>
+            </a>
+            <button class="btn btn-primary" type="submit">Submit</button>
+        </div>
+    </form>
+</div>
 
 {% endblock %}
