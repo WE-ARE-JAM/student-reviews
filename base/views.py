@@ -680,10 +680,13 @@ def generate_recommendation(request, student_name):
             context = {
                 'response' : text
             }
-
-            #return render (request,'recommendation-letter.html',context)
             form = LetterForm(context, initial=context)
-            return render (request, 'recommendation-letter.html', {'form':form})
+
+            context = {
+                'form' : form,
+                'student' : student
+            }
+            return render (request, 'recommendation-letter.html', context)
         except: # switch to template if server is busy
             if (rank>=0.5):
                 template = template1
@@ -691,10 +694,15 @@ def generate_recommendation(request, student_name):
                 template = template2
 
             context = {
-                'response' : template,
+                'response' : template
+            }
+            form = LetterForm(context, initial=context)
+
+            context = {
+                'form' : form,
+                'student' : student,
                 'message' : "Exception block"
             }
-
             return render (request, 'recommendation-letter.html', context)
 
     else:    #request is post
