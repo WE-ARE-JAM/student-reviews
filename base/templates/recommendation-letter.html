@@ -1,36 +1,54 @@
-{% extends "staff-header.html" %}
-{%block content%}
+{% extends "header.html" %}
+
+{% block title %}{{ student.name }}{% endblock %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
+
+{% block content %}
+
 <html lang="en" dir="ltr">
 
 {% load crispy_forms_tags %}
-<form method="POST">
-    {% csrf_token %}
-    {{ form.response }}
-    <button class="btn btn-primary" type="submit">Download</button>
-</form>
 
-<script>
-    function copy() {
-        // Get the text field
-        var copyText=document.getElementById("id_response").value;
-        document.getElementById("id_response").innerHTML=copyText;
+    <div class="container py-5">
+        <h1>Recommendation Letter for {{ student.name }}</h1>
+        {% crispy form form.helper %}
 
-        copyText = document.getElementById("id_response");
+        <!-- <form method="POST">
+            {% csrf_token %}
+            {{ form.response }}
+            <button class="btn btn-primary" type="submit">Download</button>
+        </form> -->
 
-        // Select the text field
-        copyText.select();
-        copyText.setSelectionRange(0, 99999); // For mobile devices
-
-        // Copy the text inside the text field
-        navigator.clipboard.writeText(copyText.value);
-
-        // Alert the copied text
-        alert("Copied!");
-    }
-
-</script>
-
-<button type="button" class="btn btn-primary" onclick="copy()">Copy</button>
+        <script>
+            function copy() {
+                // Get the text field
+                var copyText=document.getElementById("id_response").value;
+                document.getElementById("id_response").innerHTML=copyText;
+        
+                copyText = document.getElementById("id_response");
+        
+                // Select the text field
+                copyText.select();
+                copyText.setSelectionRange(0, 99999); // For mobile devices
+        
+                // Copy the text inside the text field
+                navigator.clipboard.writeText(copyText.value);
+        
+                // Alert the copied text
+                alert("Copied!");
+            }
+        </script>
+        
+        <div class="d-flex justify-content-between">
+            <button type="button" class="btn btn-primary" onclick="copy()">Copy</button>
+            <a href="{% url 'base:student-profile' student.name %}">
+                <button type="button" class="btn btn-primary">Go Back</button>
+            </a>
+        </div>
+    </div>
 
 </html>
-{%endblock%}
+{% endblock %}

@@ -5,15 +5,29 @@
 {% endblock %}
 
 {% block content %}
+
+<div class="container py-5">
     <h1>Search Results</h1>
     {% if search_results %}
-        <p>Found {{ search_results|length }} result(s).</p>
-        <ul>
+        <h6>Found {{ search_results|length }} result(s).</h6>
+        <div class="d-flex flex-column">
             {% for result in search_results %}
-                <li><a href="{% url 'base:student-profile' result.name %}">{{ result }}</a></li>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ result.name }}</h5>
+                                <a href="{% url 'base:student-profile' result.name %}" class="btn btn-primary">View profile</a>
+                            </div>
+                            <p class="card-text">Karma score: {{ result.karma.score }}</p>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
         <p>No results found.</p>
     {% endif %}
+</div>
+
 {% endblock %}

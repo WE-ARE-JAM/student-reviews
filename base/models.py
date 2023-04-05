@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 from django.utils import timezone
 from datetime import datetime
+from safedelete.models import SafeDeleteModel, SOFT_DELETE_CASCADE
 
 
 # class User(AbstractUser):
@@ -13,7 +14,7 @@ from datetime import datetime
 # School Model
 
 class School (models.Model):
-    name= models.CharField(max_length=200, null=False)
+    name = models.CharField(max_length=200, null=False, unique=True)
 
     def __str__(self):
         return '%s' % (self.name)
@@ -50,7 +51,6 @@ class Staff (models.Model):
 class Student (models.Model):
     name= models.CharField(max_length=100, null=False)
     active= models.BooleanField(default=True)
-    profile_pic = models.ImageField(null=True, default="avatar.svg")
     school= models.ForeignKey(School,on_delete=models.CASCADE)
     
     def __str__(self):
@@ -62,7 +62,9 @@ class Student (models.Model):
 # A Stats object must be created each time a review is created
 #access total upvotes/downvotes by  [review object].stats.upvotes or [review object].stats.downvotes
 
-class Review (models.Model):
+class Review(SafeDeleteModel):
+    _safedelete_policy = SOFT_DELETE_CASCADE
+    
     staff= models.ForeignKey(Staff, on_delete= models.CASCADE) #could change to models.SET_NULL, null=True
     student= models.ForeignKey(Student, on_delete= models.CASCADE)
     text= models.TextField(max_length=1000, validators=[MinLengthValidator(50)], null=False)
@@ -70,7 +72,6 @@ class Review (models.Model):
     is_good= models.BooleanField(null=False)
     created_at= models.DateTimeField(auto_now_add=True)
     edited= models.BooleanField(default=False)
-    deleted= models.BooleanField(default=False)
 
     def __str__(self):
         return '%s staff: %s student: %s text: %s rating: %d' % (timezone.localtime(self.created_at).strftime("%d/%m/%Y, %H:%M"), self.staff.user.get_full_name(), self.student.name, self.text, self.rating)
@@ -212,7 +213,7 @@ class Staff_Inbox (models.Model):
 
 
 class Activity (models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=3) # change default when in production
+    user = models.ForeignKey(User, on_delete=models.CASCADE) # change default when in production
     message = models.TextField()
     created_at= models.DateTimeField(auto_now_add=True)
     parameter = models.TextField()
