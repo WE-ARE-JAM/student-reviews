@@ -373,6 +373,27 @@ def edit_review(request, review_id):
     return render(request, 'edit-review.html', context)
 
 
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def delete_review(request, review_id):
+    review = get_object_or_404(Review, id=review_id)
+    student = review.student
+    user = request.user
+    staff = Staff.objects.get(user=user)
+    if staff != review.staff:
+        return redirect('base:unauthorized')
+    review.delete()
+    karma = Karma.objects.get(student=student)
+    karma.update_score()
+    activity = Activity.objects.create(
+        user=user,
+        message=f"You deleted your review for {student.name}.",
+        parameter=f"{student.name}"
+    )
+    activity.save()
+    return redirect('base:student-profile', student_name=student.name)
+
+
 # Vote on a review
 
 @login_required()
