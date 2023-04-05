@@ -1,5 +1,7 @@
 {% extends "header.html" %}
 
+{% load mathfilters %}
+
 {% block title %}{{ student.name }}{% endblock %}
 
 {% block navbar %}
@@ -85,13 +87,16 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between">
-                        <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }}</h5>
-                        <div>
+                    <div class="row justify-content-between">
+                        <div class="col-6">
+                            <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }}</h5>
+                        </div>
+                        <div class="col-3 d-flex justify-content-around">
                             <a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()" id="upvote-btn" class="btn btn-outline-success btn-sm {% if voted == 'UP' %}active{% endif %}" role="button" data-bs-toggle="button">Upvote
-                            </a> {{ review.stats.upvotes }}
+                            </a>
+                            <h5>{{ review.stats.upvotes|sub:review.stats.downvotes }}</h5>
                             <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()" id="downvote-btn" class="btn btn-outline-danger btn-sm {% if voted == 'DOWN' %}active{% endif %}" role="button" data-bs-toggle="button">Downvote
-                            </a> {{ review.stats.downvotes }}
+                            </a>
                         </div>
                     </div>
                 </div>
