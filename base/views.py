@@ -579,7 +579,31 @@ def give_endorsement(request, student_name, skill):
 def student_ranking(request):
     staff = Staff.objects.get(user=request.user)
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
-    context = {'students': students}
+    student_list = list(students)
+    ranking = []
+
+    for index, student in enumerate(student_list):
+        if index < len(student_list)-1:
+            if index == 0:
+                rank = 1
+                ranking.append(rank)
+            if student_list[index+1].karma.score == student.karma.score:
+                ranking.append(rank)
+            else:
+                rank = len(ranking) + 1
+                ranking.append(rank)
+        else:
+            if student.karma.score == student_list[index-1].karma.score:
+                ranking.append(rank)
+            else:
+                rank = len(ranking) + 1
+                ranking.append(rank)
+
+    students_ranking = list(zip(student_list, ranking))
+
+    context = {
+        'students' : students_ranking
+    }
     return render(request, 'leaderboard.html', context)
 
 
