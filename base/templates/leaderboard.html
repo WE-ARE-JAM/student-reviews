@@ -9,16 +9,21 @@
 {% block content %}
 
 <div class="container py-5">
-    <h1>Student Ranking</h1>
-
-    {% block filter_bar %}
-    <form class="form-inline my-2 my-lg-0" action="{% url 'base:leaderboard' %}" method="GET">
-        <input class="form-control mr-sm-2" type="search" placeholder="Top..." aria-label="Top" name="query">
-            <!-- <button class="btn" type="submit">Search</button> -->
-    </form>
-    {% endblock %}
-
-    <a href="{% url 'base:leaderboard-download' query_rank=query download='download' %}" class="btn btn-primary">Download</a>
+    <div class="row justify-content-between">
+        <div class="col-7 d-flex justify-content-between">
+            <h1>Student Leaderboard</h1>
+            {% block filter_bar %}
+            <form class="form-inline my-2 my-lg-0" action="{% url 'base:leaderboard' %}" method="GET">
+                <input class="form-control mr-sm-2" type="search" placeholder="Enter a rank..." aria-label="Top" name="query">
+            </form>
+            {% endblock %}
+        </div>
+        <div class="col-3 d-flex justify-content-end">
+            <a href="{% url 'base:leaderboard-download' query_rank=query download='download' %}">
+                <button type="button" class="btn btn-primary">Download</button>
+            </a>
+        </div>
+    </div>
 
     {% if query == 0 %}
         <h6>Total: {{ school_total }} student(s)</h6>
