@@ -109,23 +109,29 @@ class ReviewModelTest(TestCase):
         )
         cls.staff = Staff.objects.create(user=cls.user, school=cls.school)
         cls.student = Student.objects.create(name = "Jane Doe",school=cls.school)
-        cls.review = Review.objects.create(staff=cls.staff, student=cls.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
-        
+
+    def test_create_review(self):
+        review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        self.assertIsInstance(review, Review)
 
     def test_review_string_representation(self):
-        review_str = str(self.review)
-        self.assertEqual(review_str, f'{timezone.localtime(self.review.created_at).strftime("%d/%m/%Y, %H:%M")} staff: {self.review.staff.user.get_full_name()} student: {self.review.student.name} text: {self.review.text} rating: {self.review.rating}')
+        review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        review_str = str(review)
+        self.assertEqual(str(review), f'{timezone.localtime(review.created_at).strftime("%d/%m/%Y, %H:%M")} staff: {review.staff.user.get_full_name()} student: {review.student.name} text: {review.text} rating: {review.rating}')
 
     def test_review_text_max_length(self):
-        max_length = self.review._meta.get_field('text').max_length
+        review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        max_length = review._meta.get_field('text').max_length
         self.assertEqual(max_length, 1000)
 
     def test_review_rating_default_value(self):
-        default_rating = self.review._meta.get_field('rating').default
+        review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        default_rating = review._meta.get_field('rating').default
         self.assertEqual(default_rating, 3)
 
     def test_review_created_at_auto_now_add(self):
-        created_at = self.review._meta.get_field('created_at')
+        review = Review.objects.create(staff=self.staff, student=self.student, text='This is a test review that is at least fifty characters.', rating=3, is_good=True)
+        created_at = review.created_at
         self.assertTrue(created_at.auto_now_add)
 
     def test_review_edited_default_value(self):
