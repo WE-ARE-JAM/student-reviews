@@ -18,11 +18,14 @@
     </form>
     {% endblock %}
 
-  
+    <a href="{% url 'base:leaderboard-download' query_rank=query download='download' %}" class="btn btn-primary">Download</a>
 
-    <a href="{% url 'base:download-leaderboard' query=query %}" class="btn btn-primary">Download</a>
-
-    <h6>Total: {{ students|length }} student(s)</h6>
+    {% if query == 0 %}
+        <h6>Total: {{ school_total }} student(s)</h6>
+    {% else %}
+        <h4>Showing the Top {{ query }} students</h4>
+        <h6>Total in school: {{ school_total }} student(s)</h6>
+    {% endif %}
     <table class="table table-hover">
         <thead class="table-light">
             <tr>
@@ -43,6 +46,9 @@
         {% endfor %}
         </tbody>
     </table>
+    {% if query != 0 %}
+        <h6>Number of rows: {{ students|length }} row(s)</h6>
+    {% endif %}
 </div>
 
 {% endblock %}
