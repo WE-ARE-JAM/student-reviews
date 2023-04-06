@@ -652,7 +652,7 @@ def give_endorsement(request, student_name, skill):
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
-def student_ranking(request):
+def student_ranking(request, query_rank=None, download=None):
     staff = Staff.objects.get(user=request.user)
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
     student_list = list(students)
@@ -680,41 +680,37 @@ def student_ranking(request):
     query = request.GET.get('query')
     context = {
         'students' : students_ranking,
+        'school_total' : len(students),
         'query' : 0,
-        }
-    if query:
-        try:   
-            query = int(query)
-            while (students[query-1].karma.score==students[query].karma.score): # to show students that have the same karma score as the cut-off 
-                query = query+1
-            students = students[:query]
-            context = {
-                'students' : students_ranking,
-                'query' : query,
+        'school' : staff.school.name
+    }
+    if query or (query_rank and query_rank > 0):
+        try:
+            if query:
+                target = int(query)
+            elif query_rank:
+                target = int(query_rank)
+            
+            if target > len(students):
+                messages.error(request, f'Enter a number between 1 and {students.count()}')
+            else:
+                queried_students_ranking = [ (s, r) for (s, r) in students_ranking if r <= target ]
+                context = {
+                    'students' : queried_students_ranking,
+                    'school_total' : len(students),
+                    'query' : query or query_rank,
+                    'school' : staff.school.name
                 }
-            return render(request, 'leaderboard.html', context)
-        except: # handles 0, >=count and non-numerical input
-            m = f'Enter a number between 1 and {students.count()-1}'
-            messages.error(request, m)
+                if download == 'download':
+                    filename = f'{staff.school.name}_student_leaderboard_top{query_rank}.pdf'
+                    return render_to_pdf('download-leaderboard.html', context, name=filename)
+                return render(request, 'leaderboard.html', context)
+        except:
+            messages.error(request, 'Oops, an unexpected error occurred :(')
+    if download == 'download':
+        filename = f'{staff.school.name}_student_leaderboard.pdf'
+        return render_to_pdf('download-leaderboard.html', context, name=filename)
     return render(request, 'leaderboard.html', context)
-    
-
-# Download Leaderboard
-
-@login_required()
-@user_passes_test(is_staff, login_url='/unauthorized')
-def download_leaderboard(request, query):
-    staff = Staff.objects.get(user=request.user)
-    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
-    if query==0:
-        context={'students':students}
-    else:
-        while (students[query-1].karma.score==students[query].karma.score): #to show students that have the same karma score as the cut-off 
-                query=query+1
-        students=students[:query]
-        context = {'students': students}
-
-    return render_to_pdf('download-leaderboard.html',context, name="leaderboard.pdf")
 
 
 # Generate Recommendation Letters

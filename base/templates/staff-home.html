@@ -8,13 +8,26 @@
 
 {% block content %}
 <div class="container py-5">
+    <h1>Your dashboard</h1>
     <div class="row">
-        <div class="col-4">
+        <div class="col-3">
             <ul class="list-group">
-                <li class="list-group-item">Reviews written: {{ num_reviews }}</li>
-                <li class="list-group-item">Upvotes received: {{ num_upvotes }}</li>
-                <li class="list-group-item">Downvotes received: {{ num_downvotes }}</li>
-                <li class="list-group-item">Endorsements given: {{ num_endorsements }}</li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Reviews written</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_reviews }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Upvotes received</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_upvotes }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Downvotes received</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_downvotes }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Endorsements given</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_endorsements }}</span>
+                </li>
             </ul>
         </div>
         <div class="col-8">
@@ -24,7 +37,7 @@
 </div>
 
 <div class="container py-5 d-flex flex-column">
-    <h1>Activity</h1>
+    <h2>Activity</h2>
     {% if activities %}
         <div class="list-group">
         {% for activity in activities %}
