@@ -303,6 +303,59 @@ def student_profile(request, student_name):
     return render(request, 'student-profile.html', context)
 
 
+# Sort reviews for a student
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def student_reviews(request, student_name):
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
+    karma = student.karma
+    reviews = Review.objects.filter(student=student)
+
+    if reviews:
+        order= request.GET.get('order')
+        if order:
+            if order=="HighestRating":
+                reviews=reviews.order_by('-rating')
+            elif order=="LowestRating":
+                reviews=reviews.order_by('rating')
+            elif order=="MostHelpful":
+                r=list(reviews)
+                r=r.sort(key=lambda x: x.stats.upvotes, reverse=True)
+            else:   #if "" or Most Recent
+                reviews=reviews.order_by('-created_at')
+        else:
+            reviews=reviews.order_by('-created_at')
+        
+        reviews_list=list(reviews)
+
+        voted = []
+        for review in reviews_list:
+            if Vote.objects.filter(staff=staff, review=review).exists():
+                if Vote.objects.get(staff=staff, review=review).value == "UP":
+                    voted.append("UP")
+                elif Vote.objects.get(staff=staff, review=review).value == "DOWN":
+                    voted.append("DOWN")
+            else:
+                voted.append(None)
+
+        reviews_voted = list(zip(reviews_list, voted))
+
+        context={
+            'student':student,
+            'karma':karma,
+            'reviews':reviews_voted,
+        }
+    else:
+        context={
+            'student':student,
+            'karma':karma,
+        }
+
+    return render (request, 'student-reviews.html', context)
+
+
 # Write a review for a student
 
 @login_required()

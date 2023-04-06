@@ -68,6 +68,11 @@
 <div class="container py-5">
     <div class="d-flex justify-content-between">
         <h2>Reviews</h2>
+
+        <p>
+            <a href= "{% url 'base:student-reviews' student.name %}">See all reviews</a>
+        </p>
+
         <a href="{% url 'base:write-review' student.name %}">
             <button type="button" class="btn btn-primary">Write Review</button>
         </a>
