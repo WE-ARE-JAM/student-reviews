@@ -1,0 +1,85 @@
+
+{% extends "header.html" %}
+
+{% load mathfilters %}
+
+{% block title %}{{ student.name }}{% endblock %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <div class="d-flex justify-content-between">
+        
+    <form class="form-inline my-2 my-lg-0" action="{% url 'base:student-reviews' student.name %}" method="GET">
+        <select name="order" id="order">
+            <option value="MostRecent">Most Recent</option>
+            <option value="HighestRating">Highest Rating</option>
+            <option value="LowestRating">Lowest Rating</option>
+            <option value="MostHelpful">Most Helpful</option>
+        </select>
+        <input type="submit" value="submit">
+    </form>
+
+    </div>
+</div>
+
+<div class="container py-5">
+    
+        
+    <h2>Reviews</h2>
+
+        {% if reviews %}
+        <h6>{{ reviews|length }} review(s).</h6>
+        {% for review, voted in reviews %}
+            <form class="upvote id-{{ review.id }}" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='UP' %}">
+                {% csrf_token %}
+                <input type="hidden">
+            </form>
+
+            <form class="downvote id-{{ review.id }}" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='DOWN' %}">
+                {% csrf_token %}
+                <input type="hidden">
+            </form>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="row justify-content-between">
+                        <div class="col-6">
+                            <h5>{{ review.staff.user.first_name }} {{ review.staff.user.last_name }}</h5>
+                        </div>
+                        <div class="col-3 d-flex justify-content-around">
+                            <a href="#" onClick="document.getElementsByClassName('upvote id-{{ review.id }}')[0].submit()" id="upvote-btn" class="btn btn-outline-success btn-sm {% if voted == 'UP' %}active{% endif %}" role="button" data-bs-toggle="button">Upvote
+                            </a>
+                            <h5>{{ review.stats.upvotes|sub:review.stats.downvotes }}</h5>
+                            <a href="#" onClick="document.getElementsByClassName('downvote id-{{ review.id }}')[0].submit()" id="downvote-btn" class="btn btn-outline-danger btn-sm {% if voted == 'DOWN' %}active{% endif %}" role="button" data-bs-toggle="button">Downvote
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h6>Rating: {{ review.rating }}/5</h6>
+                    <p class="card-text">{{ review.text }}</p>
+                    <div class="d-flex justify-content-between">
+                        <!-- add back timestamp line here-->
+                        {% if user == review.staff.user %}
+                            <div>
+                                <a href="{% url 'base:edit-review' review.id %}" class="btn btn-primary">Edit</a>
+                                <a href="{% url 'base:delete-review' review.id %}" class="btn btn-primary">Delete</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+        {% endfor %}
+    {% else %}
+        <p>No reviews found.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}
