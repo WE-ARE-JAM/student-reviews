@@ -20,11 +20,11 @@ urlpatterns = [
     path('student/<str:student_name>/endorsement/<str:skill>', views.give_endorsement, name='endorse'),
     path('<int:review_id>/vote/<str:vote_value>', views.vote_review, name='vote-review'),
     path('leaderboard', views.student_ranking, name='leaderboard'),
+    path('leaderboard/<int:query_rank>/<str:download>', views.student_ranking, name='leaderboard-download'),
     path('dashboard', views.admin_home, name='admin-home'),
     path('unauthorized', views.unauthorized, name='unauthorized'),
     path('student/<str:student_name>/recommendation-letter', views.generate_recommendation, name='recommendation-letter'),
     path('student/recommendation-letter/<str:response>', views.download_recommendation, name='download-recommendation'),
-    path('leaderboard/download/<int:query>', views.download_leaderboard, name='download-leaderboard'),
 ]
 
 # call url using path name, eg. url 'base:student-search'
