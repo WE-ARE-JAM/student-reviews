@@ -17,14 +17,13 @@
             <h6>{{ reviews|length }} review(s).</h6>
             <form id="review-sort" class="form-inline my-2 my-lg-0" action="{% url 'base:student-reviews' student.name %}" method="GET">
                 <div class="d-flex">
-                    <select name="order" id="order" class="form-select">
+                    <select onchange="this.form.submit()" name="order" id="order" class="form-select">
                         <option value="">Filter by</option>
                         <option value="MostRecent">Most Recent</option>
                         <option value="HighestRating">Highest Rating</option>
                         <option value="LowestRating">Lowest Rating</option>
                         <option value="MostHelpful">Most Helpful</option>
                     </select>
-                    <input type="submit" value="Sort" class="btn btn-primary">
                 </div>
             </form>
         </div>
