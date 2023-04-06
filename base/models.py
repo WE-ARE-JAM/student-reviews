@@ -2,13 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator
 from django.utils import timezone
-from zoneinfo import ZoneInfo
+# from zoneinfo import ZoneInfo
 from datetime import datetime
 from safedelete.models import SafeDeleteModel, SOFT_DELETE_CASCADE
-
-
-# class User(AbstractUser):
-#     pass
 
 
 
