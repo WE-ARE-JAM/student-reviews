@@ -637,22 +637,23 @@ def student_ranking(request, query_rank=None, download=None):
                 target = int(query)
             elif query_rank:
                 target = int(query_rank)
-            while (students[target-1].karma.score==students[target].karma.score): # to show students that have the same karma score as the cut-off 
-                target = target + 1
-            students_ranking = students_ranking[:target]
-            context = {
-                'students' : students_ranking,
-                'school_total' : len(students),
-                'query' : query or query_rank,
-                'school' : staff.school.name
-            }
-            if download == 'download':
-                filename = f'{staff.school.name}_student_leaderboard_top{query_rank}.pdf'
-                return render_to_pdf('download-leaderboard.html', context, name=filename)
-            return render(request, 'leaderboard.html', context)
-        except: # handles 0, >=count and non-numerical input
-            m = f'Enter a number between 1 and {students.count()-1}'
-            messages.error(request, m)
+            
+            if target > len(students):
+                messages.error(request, f'Enter a number between 1 and {students.count()}')
+            else:
+                queried_students_ranking = [ (s, r) for (s, r) in students_ranking if r <= target ]
+                context = {
+                    'students' : queried_students_ranking,
+                    'school_total' : len(students),
+                    'query' : query or query_rank,
+                    'school' : staff.school.name
+                }
+                if download == 'download':
+                    filename = f'{staff.school.name}_student_leaderboard_top{query_rank}.pdf'
+                    return render_to_pdf('download-leaderboard.html', context, name=filename)
+                return render(request, 'leaderboard.html', context)
+        except:
+            messages.error(request, 'Oops, an unexpected error occurred :(')
     if download == 'download':
         filename = f'{staff.school.name}_student_leaderboard.pdf'
         return render_to_pdf('download-leaderboard.html', context, name=filename)
