@@ -1,4 +1,3 @@
-
 {% extends "header.html" %}
 
 {% load mathfilters %}
@@ -12,29 +11,23 @@
 {% block content %}
 
 <div class="container py-5">
-    <div class="d-flex justify-content-between">
-        
-    <form class="form-inline my-2 my-lg-0" action="{% url 'base:student-reviews' student.name %}" method="GET">
-        <select name="order" id="order">
-            <option value="">Filter by</option>
-            <option value="MostRecent">Most Recent</option>
-            <option value="HighestRating">Highest Rating</option>
-            <option value="LowestRating">Lowest Rating</option>
-            <option value="MostHelpful">Most Helpful</option>
-        </select>
-        <input type="submit" value="submit">
-    </form>
-
-    </div>
-</div>
-
-<div class="container py-5">
-    
-        
-    <h2>Reviews</h2>
-
-        {% if reviews %}
-        <h6>{{ reviews|length }} review(s).</h6>
+    <h1>Reviews for {{ student.name }}</h2>
+    {% if reviews %}
+        <div class="d-flex justify-content-between align-items-center">
+            <h6>{{ reviews|length }} review(s).</h6>
+            <form id="review-sort" class="form-inline my-2 my-lg-0" action="{% url 'base:student-reviews' student.name %}" method="GET">
+                <div class="d-flex">
+                    <select name="order" id="order" class="form-select">
+                        <option value="">Filter by</option>
+                        <option value="MostRecent">Most Recent</option>
+                        <option value="HighestRating">Highest Rating</option>
+                        <option value="LowestRating">Lowest Rating</option>
+                        <option value="MostHelpful">Most Helpful</option>
+                    </select>
+                    <input type="submit" value="Sort" class="btn btn-primary">
+                </div>
+            </form>
+        </div>
         {% for review, voted in reviews %}
             <form class="upvote id-{{ review.id }}" method="POST" action="{% url 'base:vote-review' review_id=review.id vote_value='UP' %}">
                 {% csrf_token %}
@@ -65,7 +58,7 @@
                     <h6>Rating: {{ review.rating }}/5</h6>
                     <p class="card-text">{{ review.text }}</p>
                     <div class="d-flex justify-content-between">
-                        <!-- add back timestamp line here-->
+                        <small class="text-muted">Reviewed on {{ review.timestamp }}</small>
                         {% if user == review.staff.user %}
                             <div>
                                 <a href="{% url 'base:edit-review' review.id %}" class="btn btn-primary">Edit</a>
@@ -80,7 +73,5 @@
     {% else %}
         <p>No reviews found.</p>
     {% endif %}
-
 </div>
-
 {% endblock %}
