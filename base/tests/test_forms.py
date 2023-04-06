@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from base.models import Admin, School, School, Staff, Admin
-from base.forms import AdminRegistrationForm, StaffRegistrationForm, ReviewForm, UploadCsvForm
+from base.forms import AdminRegistrationForm, StaffRegistrationForm, ReviewForm, UploadCsvForm, LetterForm
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 import io, csv
@@ -193,4 +193,18 @@ class ReviewFormTests(TestCase):
         form = ReviewForm(data={})
         self.assertIn('rating', form.errors)
         self.assertIn('text',form.errors)
+        self.assertFalse(form.is_valid())
+
+
+class LetterFormTest(TestCase):
+    def setUp(self):
+        self.form_data = {'response': 'This is a test response.'}
+
+    def test_form_valid(self):
+        form = LetterForm(data=self.form_data)
+        self.assertTrue(form.is_valid())
+
+    def test_form_invalid(self):
+        self.form_data['response'] = ''
+        form = LetterForm(data=self.form_data)
         self.assertFalse(form.is_valid())
