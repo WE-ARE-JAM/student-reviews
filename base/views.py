@@ -323,7 +323,7 @@ def student_reviews(request, student_name):
             elif order=="MostHelpful":
                 r=list(reviews)
                 r=r.sort(key=lambda x: x.stats.upvotes, reverse=True)
-            else:
+            else:   #if "" or Most Recent
                 reviews=reviews.order_by('-created_at')
         else:
             reviews=reviews.order_by('-created_at')

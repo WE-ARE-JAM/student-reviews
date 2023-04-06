@@ -16,6 +16,7 @@
         
     <form class="form-inline my-2 my-lg-0" action="{% url 'base:student-reviews' student.name %}" method="GET">
         <select name="order" id="order">
+            <option value="">Filter by</option>
             <option value="MostRecent">Most Recent</option>
             <option value="HighestRating">Highest Rating</option>
             <option value="LowestRating">Lowest Rating</option>
