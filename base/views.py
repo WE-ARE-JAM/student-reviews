@@ -4,7 +4,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm
+from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, StudentForm, ReviewForm, LetterForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 import openai
@@ -694,6 +694,9 @@ def student_ranking(request):
     ranking = []
 
     for index, student in enumerate(student_list):
+        if len(student_list) == 1:
+            rank = 1
+            ranking.append(rank)
         if index < len(student_list)-1:
             if index == 0:
                 rank = 1
@@ -953,6 +956,22 @@ def download_recommendation (request, response):
 @login_required()
 @user_passes_test(is_admin, login_url='/unauthorized')
 def admin_home(request):
+    csv_form = UploadCsvForm()
+    student_form = StudentForm()
+
+    context = {
+        'csv_form' : csv_form,
+        'student_form' : student_form
+    }
+
+    return render(request, 'admin-home.html', context)
+
+
+# csv upload form - allows school admins to upload a csv file with student names to populate the Student table
+
+@login_required()
+@user_passes_test(is_admin, login_url='/unauthorized')
+def upload_csv(request):
     form = UploadCsvForm()
     if request.method == 'POST':
         form = UploadCsvForm(request.POST, request.FILES)
@@ -979,6 +998,27 @@ def admin_home(request):
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
-    return render(request, 'admin-home.html', {'form': form})
+    # return render(request, 'admin-home.html', {'form': form})
+    return redirect('base:admin-home')
+
+
+@login_required()
+@user_passes_test(is_admin, login_url='/unauthorized')
+def student_form(request):
+    if request.method == 'POST':
+        admin = Admin.objects.get(user=request.user)
+        form = StudentForm(request.POST, initial={'school':admin.school})
+        if form.is_valid():
+            student = form.save(commit=False)
+            student.save()
+            karma = Karma.objects.create(student=student)
+            karma.save()
+            endorsement_stats = EndorsementStats.objects.create(student=student)
+            endorsement_stats.save()
+            messages.success(request, f'{student} has been successfully added!')
+            return redirect('base:admin-home')
+        messages.error(request, 'Oops, something went wrong :(')
+    return redirect('base:admin-home')
+
 
 # ------------------ END OF SCHOOL ADMIN VIEWS ----------------------
