@@ -371,10 +371,20 @@ def student_reviews(request, student_name):
 
     reviews_voted = list(zip(reviews_list, voted))
 
+    paginator = Paginator(reviews_voted, per_page=8)
+    page = request.GET.get('page')
+
+    try:
+        review_listing = paginator.page(page)
+    except PageNotAnInteger:
+        review_listing = paginator.page(1)
+    except EmptyPage:
+        review_listing = paginator.page(paginator.num_pages)
+
     context = {
-        'student':student,
-        'karma':karma,
-        'reviews':reviews_voted,
+        'student' : student,
+        'karma' : karma,
+        'reviews' : review_listing,
     }
 
     return render (request, 'student-reviews.html', context)
