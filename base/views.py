@@ -689,7 +689,7 @@ def give_endorsement(request, student_name, skill):
 @user_passes_test(is_staff, login_url='/unauthorized')
 def student_ranking(request):
     staff = Staff.objects.get(user=request.user)
-    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score', 'name')
     student_list = list(students)
     ranking = []
 
