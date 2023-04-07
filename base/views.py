@@ -690,12 +690,6 @@ def student_ranking(request):
     students_ranking = list(zip(student_list, ranking))
 
     query = request.GET.get('query')
-    context = {
-        'students' : students_ranking,
-        'school_total' : len(students),
-        'query' : 0,
-        'school' : staff.school.name
-    }
     if query:
         try:
             target = int(query)
@@ -703,21 +697,64 @@ def student_ranking(request):
                 messages.error(request, f'Enter a number between 1 and {students.count()}')
             else:
                 queried_students_ranking = [ (s, r) for (s, r) in students_ranking if r <= target ]
+
+                if request.GET.get('download') == 'download':
+                    context = {
+                        'students' : queried_students_ranking,
+                        'school_total' : len(students),
+                        'query' : query,
+                        'school' : staff.school.name
+                    }
+                    filename = f'{staff.school.name}_student_leaderboard_top{query}.pdf'
+                    return render_to_pdf('download-leaderboard.html', context, name=filename)
+
+                paginator = Paginator(queried_students_ranking, per_page=10)
+                page = request.GET.get('page')
+
+                try:
+                    students_page = paginator.page(page)
+                except PageNotAnInteger:
+                    students_page = paginator.page(1)
+                except EmptyPage:
+                    students_page = paginator.page(paginator.num_pages)
+                
                 context = {
-                    'students' : queried_students_ranking,
+                    'students' : students_page,
                     'school_total' : len(students),
                     'query' : query,
                     'school' : staff.school.name
                 }
-                if request.GET.get('download') == 'download':
-                    filename = f'{staff.school.name}_student_leaderboard_top{query}.pdf'
-                    return render_to_pdf('download-leaderboard.html', context, name=filename)
                 return render(request, 'leaderboard.html', context)
         except:
             messages.error(request, 'Oops, an unexpected error occurred :(')
+    
     if request.GET.get('download') == 'download':
+        context = {
+            'students' : students_ranking,
+            'school_total' : len(students),
+            'query' : 0,
+            'school' : staff.school.name
+        }
         filename = f'{staff.school.name}_student_leaderboard.pdf'
         return render_to_pdf('download-leaderboard.html', context, name=filename)
+    
+    paginator = Paginator(students_ranking, per_page=10)
+    page = request.GET.get('page')
+
+    try:
+        students_page = paginator.page(page)
+    except PageNotAnInteger:
+        students_page = paginator.page(1)
+    except EmptyPage:
+        students_page = paginator.page(paginator.num_pages)
+    
+    context = {
+        'students' : students_page,
+        'school_total' : len(students),
+        'query' : 0,
+        'school' : staff.school.name
+    }
+
     return render(request, 'leaderboard.html', context)
 
 
