@@ -1,9 +1,10 @@
 from django import forms
+from django.urls import reverse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Field, Row, Column
-from .models import Admin, Staff, School, Review
+from .models import Admin, Staff, School, Student, Review
 
 
 class SchoolRegistrationForm(forms.ModelForm):
@@ -88,8 +89,32 @@ class UploadCsvForm(forms.Form):
         self.helper.form_id = 'upload-csv'
         self.helper.form_class = 'blueForms'
         self.helper.form_method = 'post'
+        self.helper.form_action = reverse('base:student-upload')
 
         self.helper.add_input(Submit('submit', 'Upload'))
+
+
+class StudentForm(forms.ModelForm):
+    school = forms.ModelChoiceField(
+        # widget=forms.HiddenInput(),
+        queryset=School.objects.all(), required=True
+    )
+
+    class Meta:
+        model = Student
+        fields = ('name', 'school')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['school'].disabled = True
+
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        school = self.cleaned_data.get('school')
+        if Student.objects.filter(name=name, school=school).exists():
+            raise forms.ValidationError("Student has already been added.")
+        return name
+
 
 
 # form for writing a review for a student
@@ -111,6 +136,8 @@ class ReviewForm(forms.ModelForm):
         if rating < 1 or rating > 5:
             raise forms.ValidationError('Rating must be between 1 and 5.')
         return rating
+
+
 
 #form for recommendation letter
 class LetterForm(forms.Form):
