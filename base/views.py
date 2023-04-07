@@ -211,12 +211,12 @@ def staff_home(request):
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
-def student_search(request, page):
+def student_search(request):
     query = request.GET.get('query')
     current_user = request.user
     staff = Staff.objects.get(user=current_user)
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
-    paginator = Paginator(search_results, per_page=6)
+    paginator = Paginator(search_results, per_page=1)
     page = request.GET.get('page')
 
     try:
