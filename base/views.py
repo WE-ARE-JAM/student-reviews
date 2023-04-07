@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
@@ -210,15 +211,25 @@ def staff_home(request):
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
-def student_search(request):
+def student_search(request, page):
     query = request.GET.get('query')
     current_user = request.user
     staff = Staff.objects.get(user=current_user)
-    # search for items matching the query
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
+    paginator = Paginator(search_results, per_page=6)
+    page = request.GET.get('page')
+
+    try:
+        results = paginator.page(page)
+    except PageNotAnInteger:
+        results = paginator.page(1)
+    except EmptyPage:
+        results = paginator.page(paginator.num_pages)
+
     context = {
         'query' : query,
-        'search_results' : search_results
+        'search_results' : results,
+        'num_results' : len(search_results)
     }
     return render(request, 'search-results.html', context)
 

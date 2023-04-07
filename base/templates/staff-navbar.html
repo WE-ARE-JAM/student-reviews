@@ -11,8 +11,7 @@
 {% endblock %}
 
 {% block search_bar %}
-<form class="form-inline my-2 my-lg-0" action="{% url 'base:student-search' %}" method="GET">
+<form class="form-inline my-2 my-lg-0" action="{% url 'base:search-results' page=1 %}" method="GET">
     <input class="form-control mr-sm-2" type="search" placeholder="Search..." aria-label="Search" name="query">
-        <!-- <button class="btn" type="submit">Search</button> -->
 </form>
 {% endblock %}
