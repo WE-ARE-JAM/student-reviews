@@ -343,45 +343,39 @@ def student_reviews(request, student_name):
     karma = student.karma
     reviews = Review.objects.filter(student=student)
 
-    if reviews:
-        order= request.GET.get('order')
-        if order:
-            if order=="HighestRating":
-                reviews=reviews.order_by('-rating')
-            elif order=="LowestRating":
-                reviews=reviews.order_by('rating')
-            elif order=="MostHelpful":
-                r=list(reviews)
-                r=r.sort(key=lambda x: x.stats.upvotes, reverse=True)
-            else:   #if "" or Most Recent
-                reviews=reviews.order_by('-created_at')
-        else:
-            reviews=reviews.order_by('-created_at')
-        
-        reviews_list=list(reviews)
-
-        voted = []
-        for review in reviews_list:
-            if Vote.objects.filter(staff=staff, review=review).exists():
-                if Vote.objects.get(staff=staff, review=review).value == "UP":
-                    voted.append("UP")
-                elif Vote.objects.get(staff=staff, review=review).value == "DOWN":
-                    voted.append("DOWN")
-            else:
-                voted.append(None)
-
-        reviews_voted = list(zip(reviews_list, voted))
-
-        context={
-            'student':student,
-            'karma':karma,
-            'reviews':reviews_voted,
-        }
+    order = request.GET.get('order')
+    if order:
+        if order == "HighestRating":
+            reviews = reviews.order_by('-rating')
+        elif order == "LowestRating":
+            reviews = reviews.order_by('rating')
+        elif order == "MostHelpful":
+            r = list(reviews)
+            r = r.sort(key=lambda x: x.stats.upvotes, reverse=True)
+        else:   #if "" or Most Recent
+            reviews = reviews.order_by('-created_at')
     else:
-        context={
-            'student':student,
-            'karma':karma,
-        }
+        reviews = reviews.order_by('-created_at')
+        
+    reviews_list = list(reviews)
+
+    voted = []
+    for review in reviews_list:
+        if Vote.objects.filter(staff=staff, review=review).exists():
+            if Vote.objects.get(staff=staff, review=review).value == "UP":
+                voted.append("UP")
+            elif Vote.objects.get(staff=staff, review=review).value == "DOWN":
+                voted.append("DOWN")
+        else:
+            voted.append(None)
+
+    reviews_voted = list(zip(reviews_list, voted))
+
+    context = {
+        'student':student,
+        'karma':karma,
+        'reviews':reviews_voted,
+    }
 
     return render (request, 'student-reviews.html', context)
 
