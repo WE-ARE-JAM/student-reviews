@@ -193,8 +193,17 @@ def staff_home(request):
         if endorsement.participation: num_endorsements_given += 1
         if endorsement.teamwork: num_endorsements_given += 1
 
-    activities = Activity.objects.filter(user=user)
-    activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+    activities_set = Activity.objects.filter(user=user)
+    activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True)
+    paginator = Paginator(activities_list, per_page=5)
+    page = request.GET.get('page')
+
+    try:
+        activities = paginator.page(page)
+    except PageNotAnInteger:
+        activities = paginator.page(1)
+    except EmptyPage:
+        activities = paginator.page(paginator.num_pages)
 
     context = {
         'num_reviews' : num_reviews,
