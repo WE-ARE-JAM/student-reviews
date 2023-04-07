@@ -296,6 +296,7 @@ def student_profile(request, student_name):
             voted.append(None)
 
     reviews_voted = list(zip(reviews_list, voted))
+    reviews_voted = reviews_voted[:3]
     
     if reviews:
         load_dotenv()
