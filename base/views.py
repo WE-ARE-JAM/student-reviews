@@ -95,9 +95,18 @@ def unauthorized(request):
 @login_required()
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def superuser_home(request):
-    activities = Activity.objects.filter(user=request.user)
-    if activities:
-        activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+    activities_set = Activity.objects.filter(user=request.user)
+    activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True)
+
+    paginator = Paginator(activities_list, per_page=8)
+    page = request.GET.get('page')
+
+    try:
+        activities = paginator.page(page)
+    except PageNotAnInteger:
+        activities = paginator.page(1)
+    except EmptyPage:
+        activities = paginator.page(paginator.num_pages)
 
     context = {
         'activities' : activities
