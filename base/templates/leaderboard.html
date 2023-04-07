@@ -19,7 +19,7 @@
             {% endblock %}
         </div>
         <div class="col-3 d-flex justify-content-end">
-            <a href="{% url 'base:leaderboard-download' query_rank=query download='download' %}">
+            <a href="?download=download{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}">
                 <button type="button" class="btn btn-primary">Download</button>
             </a>
         </div>

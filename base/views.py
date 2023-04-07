@@ -664,7 +664,7 @@ def give_endorsement(request, student_name, skill):
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
-def student_ranking(request, query_rank=None, download=None):
+def student_ranking(request):
     staff = Staff.objects.get(user=request.user)
     students = Student.objects.filter(school=staff.school).order_by('-karma__score')
     student_list = list(students)
@@ -696,13 +696,9 @@ def student_ranking(request, query_rank=None, download=None):
         'query' : 0,
         'school' : staff.school.name
     }
-    if query or (query_rank and query_rank > 0):
+    if query:
         try:
-            if query:
-                target = int(query)
-            elif query_rank:
-                target = int(query_rank)
-            
+            target = int(query)
             if target > len(students):
                 messages.error(request, f'Enter a number between 1 and {students.count()}')
             else:
@@ -710,16 +706,16 @@ def student_ranking(request, query_rank=None, download=None):
                 context = {
                     'students' : queried_students_ranking,
                     'school_total' : len(students),
-                    'query' : query or query_rank,
+                    'query' : query,
                     'school' : staff.school.name
                 }
-                if download == 'download':
-                    filename = f'{staff.school.name}_student_leaderboard_top{query_rank}.pdf'
+                if request.GET.get('download') == 'download':
+                    filename = f'{staff.school.name}_student_leaderboard_top{query}.pdf'
                     return render_to_pdf('download-leaderboard.html', context, name=filename)
                 return render(request, 'leaderboard.html', context)
         except:
             messages.error(request, 'Oops, an unexpected error occurred :(')
-    if download == 'download':
+    if request.GET.get('download') == 'download':
         filename = f'{staff.school.name}_student_leaderboard.pdf'
         return render_to_pdf('download-leaderboard.html', context, name=filename)
     return render(request, 'leaderboard.html', context)
