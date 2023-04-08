@@ -96,8 +96,9 @@ class UploadCsvForm(forms.Form):
 
 class StudentForm(forms.ModelForm):
     school = forms.ModelChoiceField(
-        # widget=forms.HiddenInput(),
-        queryset=School.objects.all(), required=True
+        widget=forms.HiddenInput(),
+        queryset=School.objects.all(),
+        required=True
     )
 
     class Meta:
