@@ -49,6 +49,9 @@ class Student (models.Model):
     name= models.CharField(max_length=100, null=False)
     active= models.BooleanField(default=True)
     school= models.ForeignKey(School,on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('name', 'school',)
     
     def __str__(self):
         return '%s : %s' % (self.name, self.school.name)
