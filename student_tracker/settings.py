@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY',
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
 
-ALLOWED_HOSTS = ['rate-my-students.up.railway.app/']
+ALLOWED_HOSTS = ['rate-my-students.up.railway.app']
 
 
 # Application definition
