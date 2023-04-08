@@ -75,8 +75,6 @@ SESSION_COOKIE_SECURE = True
 
 CSRF_COOKIE_SECURE = True
 
-SECURE_SSL_REDIRECT = True
-
 ROOT_URLCONF = 'student_tracker.urls'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
