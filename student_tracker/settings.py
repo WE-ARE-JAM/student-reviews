@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 from django.contrib.messages import constants as messages
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +23,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-h6c4-kh)x4_9l=35y=ui#3cnl=q94il@_k&2enz&g-8pau%j6!'
+# SECRET_KEY = 'django-insecure-h6c4-kh)x4_9l=35y=ui#3cnl=q94il@_k&2enz&g-8pau%j6!'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY',
+'django-insecure-h6c4-kh)x4_9l=35y=ui#3cnl=q94il@_k&2enz&g-8pau%j6!'
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -47,6 +54,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -57,10 +65,16 @@ MIDDLEWARE = [
 
 # to be changed when in production
 CSRF_TRUSTED_ORIGINS = [
-        'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us93.gitpod.io',
-        'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us92.gitpod.io',
-        'https://8000-wearejam-studentreviews-h6ynxtko5ln.ws-us90.gitpod.io'
-    ]
+    'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us93.gitpod.io',
+    'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us92.gitpod.io',
+    'https://8000-wearejam-studentreviews-h6ynxtko5ln.ws-us90.gitpod.io'
+]
+
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SECURE = True
+
+SECURE_SSL_REDIRECT = True
 
 ROOT_URLCONF = 'student_tracker.urls'
 
@@ -105,6 +119,8 @@ DATABASES = {
     }
 }
 
+db_from_env = dj_database_url.config(conn_max_age=500)
+DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -139,6 +155,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 STATIC_URL = 'static/'
 
