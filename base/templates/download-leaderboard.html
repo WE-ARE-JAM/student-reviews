@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <style>
+             @page {
+                size: A4;
+                margin: 1cm;
+            }
+        </style>
+    </head>
+
+    <body>
+        <h1 style="text-align: center">JAM Student Leaderboard for {{ school }}</h1>
+        {% if query == 0 %}
+            <h6 style="text-align: center">Total: {{ school_total }} student(s)</h6>
+        {% else %}
+            <h4 style="text-align: center">Showing the Top {{ query }} students</h4>
+            <h6 style="text-align: center">Total in school: {{ school_total }} student(s)</h6>
+        {% endif %}
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th style="text-align: center">Rank</th>
+                    <th style="text-align: center">Name</th>
+                    <th style="text-align: center">Karma Score</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for student, rank in students %}
+                <tr>
+                    <td style="text-align: center">{{ rank }}</td>
+                    <td>{{ student.name }}</td>
+                    <td style="text-align: center">{{ student.karma.score }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% if query != 0 %}
+            <h6>Number of rows: {{ students|length }} row(s)</h6>
+        {% endif %}
+    </body>
+
+
+</html>

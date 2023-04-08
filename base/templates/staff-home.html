@@ -1,0 +1,98 @@
+{% extends "header.html" %}
+
+{% block title %}Staff Home{% endblock %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1>Your dashboard</h1>
+    <div class="row">
+        <div class="col-3">
+            <ul class="list-group">
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Reviews written</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_reviews }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Upvotes received</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_upvotes }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Downvotes received</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_downvotes }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <div class="fw-bold">Endorsements given</div>
+                    <span class="badge bg-primary" style="font-size:1.15em;">{{ num_endorsements }}</span>
+                </li>
+            </ul>
+        </div>
+        <div class="col-8">
+
+        </div>
+    </div>
+</div>
+
+<div class="container py-5 d-flex flex-column">
+    <h2>Activity</h2>
+    {% if activities %}
+        <div class="list-group">
+        {% for activity in activities %}
+            <a href="{% url 'base:student-profile' activity.parameter %}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between">
+                    <h5>{{ activity.message }}</h5>
+                    <small class="text-muted">{{ activity.timestamp }}</small>
+                </div>
+            </a>
+        {% endfor %}
+        </div>
+        {% if activities.has_other_pages %}
+            <nav aria-label="Staff activity page nav">
+                <ul class="pagination justify-content-center">
+                {% if activities.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous" tabindex="-1" aria-disabled="true">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% for num in activities.paginator.page_range %}
+                    {% if activities.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="#">{{ num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if activities.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ activities.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next" tabindex="-1" aria-disabled="true">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>You have no activity yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "navbar.html" %}
+
+{% block nav_items %}
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'base:admin-register' %}">Admin Registration</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'base:school-register' %}">School Registration</a>
+</li>
+{% endblock %}

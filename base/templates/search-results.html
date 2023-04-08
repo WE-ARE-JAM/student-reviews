@@ -1,0 +1,74 @@
+{% extends 'header.html' %}
+
+{% block navbar %}
+    {% include "staff-navbar.html" %}
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+    <h1>Search Results for '{{ query }}'</h1>
+    {% if search_results %}
+        <h6>Found {{ num_results }} result(s).</h6>
+        <div class="d-flex flex-column">
+            {% for result in search_results %}
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="card-title">{{ result.name }}</h5>
+                                <a href="{% url 'base:student-profile' result.name %}" class="btn btn-primary">View profile</a>
+                            </div>
+                            <p class="card-text">Karma score: {{ result.karma.score }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% if search_results.has_other_pages %}
+            <nav aria-label="Search results page nav">
+                <ul class="pagination justify-content-center">
+                {% if search_results.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ search_results.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous" tabindex="-1" aria-disabled="true">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                {% for num in search_results.paginator.page_range %}
+                    {% if search_results.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <a class="page-link" href="#">{{ num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ num }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}">{{ num }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if search_results.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ search_results.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next" tabindex="-1" aria-disabled="true">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p>No results found.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
