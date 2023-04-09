@@ -60,7 +60,8 @@ CSRF_TRUSTED_ORIGINS = [
         'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us93.gitpod.io',
         'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us92.gitpod.io',
         'https://8000-wearejam-studentreviews-h6ynxtko5ln.ws-us90.gitpod.io',
-        'https://8000-wearejam-studentreviews-4wa98702mpm.ws-us93.gitpod.io'
+        'https://8000-wearejam-studentreviews-4wa98702mpm.ws-us93.gitpod.io',
+        'https://8000-wearejam-studentreviews-fn8oxupqwa5.ws-us93.gitpod.io'
     ]
 
 ROOT_URLCONF = 'student_tracker.urls'
