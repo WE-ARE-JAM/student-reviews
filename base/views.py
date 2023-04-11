@@ -1015,7 +1015,7 @@ def student_form(request):
             karma.save()
             endorsement_stats = EndorsementStats.objects.create(student=student)
             endorsement_stats.save()
-            messages.success(request, f'{student} has been successfully added!')
+            messages.success(request, f'{student.name} has been successfully added!')
             return redirect('base:admin-home')
         messages.error(request, 'Oops, something went wrong :(')
     return redirect('base:admin-home')
