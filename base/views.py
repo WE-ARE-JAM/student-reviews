@@ -235,7 +235,7 @@ def student_search(request):
     staff = Staff.objects.get(user=current_user)
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
     search_results = search_results.order_by('name')
-    paginator = Paginator(search_results, per_page=1)
+    paginator = Paginator(search_results, per_page=6)
     page = request.GET.get('page')
 
     try:
