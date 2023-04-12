@@ -21,6 +21,8 @@ from django.template.loader import get_template
 from django.template import Context
 from django.http import HttpResponse
 
+
+
 # Callables for user_passes_test()
 
 def is_admin(user):
@@ -32,6 +34,7 @@ def is_staff(user):
 
 
 # Create your views here.
+
 
 
 def login_request(request):
@@ -65,10 +68,12 @@ def login_request(request):
         return render(request, 'login.html', {'login_form' : form})
 
 
+
 def logout_request(request):
     logout(request)
     messages.info(request, 'You have successfully logged out.')
     return redirect('base:login')
+
 
 
 # View for when a user attempts to access a view that they are not authorized to
@@ -77,20 +82,8 @@ def unauthorized(request):
     return render(request, 'unauthorized.html')
 
 
-# def index(request):
-#     if request.user.is_authenticated:
-#         if request.user.is_superuser:
-#             return redirect('base:superuser-home')
-#         if is_admin(request.user):
-#             return redirect('base:admin-home')
-#         if is_staff(request.user):
-#             return redirect('base:staff-home')
-#     else:
-#         return redirect('base:login')
 
-
-
-# ------------------ SUPERUSER VIEWS ----------------------
+# -------------------------------- SUPERUSER VIEWS -----------------------------------
 
 @login_required()
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
@@ -159,11 +152,11 @@ def admin_register(request):
         form = AdminRegistrationForm()
     return render(request, 'admin-register.html', {'register_form' : form})
 
-# ------------------ END OF SUPERUSER VIEWS ----------------------
+# ------------------------------- END OF SUPERUSER VIEWS --------------------------------
 
 
 
-# ------------------ SCHOOL STAFF VIEWS ----------------------
+# ------------------------------ SCHOOL STAFF VIEWS ------------------------------------
 
 # Staff registration view - allows school staff (eg. teachers) to create accounts
 
@@ -178,6 +171,7 @@ def staff_register(request):
     else:
         form = StaffRegistrationForm()
     return render(request, 'staff-register.html', {'register_form': form})
+
 
 
 @login_required()
@@ -225,6 +219,7 @@ def staff_home(request):
     return render(request, 'staff-home.html', context)
 
 
+
 # Search for students - allows school staff to search for students in their school
 
 @login_required()
@@ -251,6 +246,7 @@ def student_search(request):
         'num_results' : len(search_results)
     }
     return render(request, 'search-results.html', context)
+
 
 
 # Show student profile
@@ -334,6 +330,7 @@ def student_profile(request, student_name):
     return render(request, 'student-profile.html', context)
 
 
+
 # Sort reviews for a student
 
 @login_required()
@@ -391,6 +388,7 @@ def student_reviews(request, student_name):
     return render (request, 'student-reviews.html', context)
 
 
+
 # Write a review for a student
 
 @login_required()
@@ -428,6 +426,7 @@ def create_review(request, student_name):
     return render(request, 'create-review.html', context)
 
 
+
 # Edit Review: allow a staff member to change a review that they already posted
 
 @login_required()
@@ -463,6 +462,7 @@ def edit_review(request, review_id):
     return render(request, 'edit-review.html', context)
 
 
+
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def delete_review(request, review_id):
@@ -482,6 +482,7 @@ def delete_review(request, review_id):
     )
     activity.save()
     return redirect('base:student-profile', student_name=student.name)
+
 
 
 # Vote on a review
@@ -539,6 +540,7 @@ def vote_review(request, review_id, vote_value):
                 )
                 activity.save()
     return redirect('base:student-profile', student_name=review.student.name)
+
 
 
 # Give a student a skill endorsement
@@ -683,6 +685,7 @@ def give_endorsement(request, student_name, skill):
     return redirect('base:student-profile', student_name=student_name)
 
 
+
 # Karma Leaderboard
 
 @login_required()
@@ -782,6 +785,7 @@ def student_ranking(request):
     }
 
     return render(request, 'leaderboard.html', context)
+
 
 
 # Generate Recommendation Letters
@@ -921,6 +925,7 @@ def generate_recommendation(request, student_name):
         return redirect ('base:download-recommendation', response=response)
 
 
+
 def render_to_pdf(template_src, context_dict, name):
     template = get_template(template_src)
     html  = template.render(context_dict)
@@ -930,6 +935,7 @@ def render_to_pdf(template_src, context_dict, name):
         result.seek(0)
         return FileResponse(result, as_attachment=True, filename=name)
     return
+
 
 
 @login_required()
@@ -943,12 +949,11 @@ def download_recommendation (request, response):
     }
     return render_to_pdf('download-recommendation.html', context, name="recommendation_letter.pdf")
 
-
-# ------------------ END OF SCHOOL STAFF VIEWS ----------------------
-
+# -------------------------------- END OF SCHOOL STAFF VIEWS -------------------------------
 
 
-# ------------------ SCHOOL ADMIN VIEWS ----------------------
+
+# ---------------------------------- SCHOOL ADMIN VIEWS ------------------------------------
 
 # School admin homepage / csv upload form - allows school admins to upload a csv file
 # with student names to populate the Student table
@@ -965,6 +970,7 @@ def admin_home(request):
     }
 
     return render(request, 'admin-home.html', context)
+
 
 
 # csv upload form - allows school admins to upload a csv file with student names to populate the Student table
@@ -1002,6 +1008,7 @@ def upload_csv(request):
     return redirect('base:admin-home')
 
 
+
 @login_required()
 @user_passes_test(is_admin, login_url='/unauthorized')
 def student_form(request):
@@ -1020,5 +1027,4 @@ def student_form(request):
         messages.error(request, 'Oops, something went wrong :(')
     return redirect('base:admin-home')
 
-
-# ------------------ END OF SCHOOL ADMIN VIEWS ----------------------
+# --------------------------------- END OF SCHOOL ADMIN VIEWS ---------------------------------
