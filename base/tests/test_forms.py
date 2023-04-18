@@ -104,7 +104,13 @@ class StaffRegistrationFormTest(TestCase):
         self.assertIn('password2', form.errors)
 
     def test_form_email_already_exists(self):
-        existing_user = User.objects.create_user(username='existing_user', email='testuser@example.com')
+        existing_user = User.objects.create_user(
+            email='testuser@example.com',
+            username='existing_user',
+            first_name='Test',
+            last_name='User',
+            password='testpassword'
+        )
         form = StaffRegistrationForm(data=self.form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors['email'], ['Email already exists'])
@@ -165,7 +171,7 @@ class ReviewFormTests(TestCase):
         self.assertIn('text', form.errors)
         self.assertFalse(form.is_valid())
 
-    def test_invalid_form_text(self):
+    def test_invalid_form_rating(self):
         form = ReviewForm(data=self.invalid_form_rating)
         self.assertIn('rating', form.errors)
         self.assertFalse(form.is_valid())
