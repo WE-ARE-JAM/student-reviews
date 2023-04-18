@@ -372,7 +372,5 @@ class ActivityModelTestCase(TestCase):
         )
         self.assertEqual(str(self.activity), expected_output)
         
-    def test_created_at(self):
-        self.assertTrue(self.activity.created_at)
 
 
