@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, ReviewForm, LetterForm
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .forms import SchoolRegistrationForm, AdminRegistrationForm, StaffRegistrationForm, UploadCsvForm, StudentForm, ReviewForm, LetterForm
 from .models import Admin, Student, Staff, Review, Stats, Karma, Vote, Endorsement, EndorsementStats, Activity
 import csv
 import openai
@@ -20,6 +21,8 @@ from django.template.loader import get_template
 from django.template import Context
 from django.http import HttpResponse
 
+
+
 # Callables for user_passes_test()
 
 def is_admin(user):
@@ -31,6 +34,7 @@ def is_staff(user):
 
 
 # Create your views here.
+
 
 
 def login_request(request):
@@ -64,10 +68,12 @@ def login_request(request):
         return render(request, 'login.html', {'login_form' : form})
 
 
+
 def logout_request(request):
     logout(request)
     messages.info(request, 'You have successfully logged out.')
     return redirect('base:login')
+
 
 
 # View for when a user attempts to access a view that they are not authorized to
@@ -76,27 +82,24 @@ def unauthorized(request):
     return render(request, 'unauthorized.html')
 
 
-# def index(request):
-#     if request.user.is_authenticated:
-#         if request.user.is_superuser:
-#             return redirect('base:superuser-home')
-#         if is_admin(request.user):
-#             return redirect('base:admin-home')
-#         if is_staff(request.user):
-#             return redirect('base:staff-home')
-#     else:
-#         return redirect('base:login')
 
-
-
-# ------------------ SUPERUSER VIEWS ----------------------
+# -------------------------------- SUPERUSER VIEWS -----------------------------------
 
 @login_required()
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def superuser_home(request):
-    activities = Activity.objects.filter(user=request.user)
-    if activities:
-        activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+    activities_set = Activity.objects.filter(user=request.user)
+    activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True)
+
+    paginator = Paginator(activities_list, per_page=8)
+    page = request.GET.get('page')
+
+    try:
+        activities = paginator.page(page)
+    except PageNotAnInteger:
+        activities = paginator.page(1)
+    except EmptyPage:
+        activities = paginator.page(paginator.num_pages)
 
     context = {
         'activities' : activities
@@ -149,11 +152,11 @@ def admin_register(request):
         form = AdminRegistrationForm()
     return render(request, 'admin-register.html', {'register_form' : form})
 
-# ------------------ END OF SUPERUSER VIEWS ----------------------
+# ------------------------------- END OF SUPERUSER VIEWS --------------------------------
 
 
 
-# ------------------ SCHOOL STAFF VIEWS ----------------------
+# ------------------------------ SCHOOL STAFF VIEWS ------------------------------------
 
 # Staff registration view - allows school staff (eg. teachers) to create accounts
 
@@ -168,6 +171,7 @@ def staff_register(request):
     else:
         form = StaffRegistrationForm()
     return render(request, 'staff-register.html', {'register_form': form})
+
 
 
 @login_required()
@@ -192,8 +196,17 @@ def staff_home(request):
         if endorsement.participation: num_endorsements_given += 1
         if endorsement.teamwork: num_endorsements_given += 1
 
-    activities = Activity.objects.filter(user=user)
-    activities = sorted(list(activities), key=lambda x: x.created_at, reverse=True)
+    activities_set = Activity.objects.filter(user=user)
+    activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True)
+    paginator = Paginator(activities_list, per_page=5)
+    page = request.GET.get('page')
+
+    try:
+        activities = paginator.page(page)
+    except PageNotAnInteger:
+        activities = paginator.page(1)
+    except EmptyPage:
+        activities = paginator.page(paginator.num_pages)
 
     context = {
         'num_reviews' : num_reviews,
@@ -206,6 +219,7 @@ def staff_home(request):
     return render(request, 'staff-home.html', context)
 
 
+
 # Search for students - allows school staff to search for students in their school
 
 @login_required()
@@ -214,13 +228,25 @@ def student_search(request):
     query = request.GET.get('query')
     current_user = request.user
     staff = Staff.objects.get(user=current_user)
-    # search for items matching the query
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
+    search_results = search_results.order_by('name')
+    paginator = Paginator(search_results, per_page=6)
+    page = request.GET.get('page')
+
+    try:
+        results = paginator.page(page)
+    except PageNotAnInteger:
+        results = paginator.page(1)
+    except EmptyPage:
+        results = paginator.page(paginator.num_pages)
+
     context = {
         'query' : query,
-        'search_results' : search_results
+        'search_results' : results,
+        'num_results' : len(search_results)
     }
     return render(request, 'search-results.html', context)
+
 
 
 # Show student profile
@@ -266,6 +292,7 @@ def student_profile(request, student_name):
             voted.append(None)
 
     reviews_voted = list(zip(reviews_list, voted))
+    reviews_voted = reviews_voted[:3]
     
     if reviews:
         load_dotenv()
@@ -301,6 +328,65 @@ def student_profile(request, student_name):
         'summary': summary,
     }
     return render(request, 'student-profile.html', context)
+
+
+
+# Sort reviews for a student
+
+@login_required()
+@user_passes_test(is_staff, login_url='/unauthorized')
+def student_reviews(request, student_name):
+    staff = Staff.objects.get(user=request.user)
+    student = Student.objects.get(name=student_name, school=staff.school)
+    karma = student.karma
+    reviews = Review.objects.filter(student=student)
+
+    order = request.GET.get('order')
+    if order:
+        if order == "HighestRating":
+            reviews = reviews.order_by('-rating')
+        elif order == "LowestRating":
+            reviews = reviews.order_by('rating')
+        elif order == "MostHelpful":
+            r = list(reviews)
+            r = r.sort(key=lambda x: x.stats.upvotes, reverse=True)
+        else:   #if "" or Most Recent
+            reviews = reviews.order_by('-created_at')
+    else:
+        reviews = reviews.order_by('-created_at')
+        
+    reviews_list = list(reviews)
+
+    voted = []
+    for review in reviews_list:
+        if Vote.objects.filter(staff=staff, review=review).exists():
+            if Vote.objects.get(staff=staff, review=review).value == "UP":
+                voted.append("UP")
+            elif Vote.objects.get(staff=staff, review=review).value == "DOWN":
+                voted.append("DOWN")
+        else:
+            voted.append(None)
+
+    reviews_voted = list(zip(reviews_list, voted))
+
+    paginator = Paginator(reviews_voted, per_page=8)
+    page = request.GET.get('page')
+
+    try:
+        review_listing = paginator.page(page)
+    except PageNotAnInteger:
+        review_listing = paginator.page(1)
+    except EmptyPage:
+        review_listing = paginator.page(paginator.num_pages)
+
+    context = {
+        'student' : student,
+        'karma' : karma,
+        'reviews' : review_listing,
+    }
+
+    return render (request, 'student-reviews.html', context)
+
 
 
 # Write a review for a student
@@ -340,6 +426,7 @@ def create_review(request, student_name):
     return render(request, 'create-review.html', context)
 
 
+
 # Edit Review: allow a staff member to change a review that they already posted
 
 @login_required()
@@ -375,6 +462,7 @@ def edit_review(request, review_id):
     return render(request, 'edit-review.html', context)
 
 
+
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def delete_review(request, review_id):
@@ -394,6 +482,7 @@ def delete_review(request, review_id):
     )
     activity.save()
     return redirect('base:student-profile', student_name=student.name)
+
 
 
 # Vote on a review
@@ -451,6 +540,7 @@ def vote_review(request, review_id, vote_value):
                 )
                 activity.save()
     return redirect('base:student-profile', student_name=review.student.name)
+
 
 
 # Give a student a skill endorsement
@@ -595,17 +685,21 @@ def give_endorsement(request, student_name, skill):
     return redirect('base:student-profile', student_name=student_name)
 
 
+
 # Karma Leaderboard
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
 def student_ranking(request):
     staff = Staff.objects.get(user=request.user)
-    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
+    students = Student.objects.filter(school=staff.school).order_by('-karma__score', 'name')
     student_list = list(students)
     ranking = []
 
     for index, student in enumerate(student_list):
+        if len(student_list) == 1:
+            rank = 1
+            ranking.append(rank)
         if index < len(student_list)-1:
             if index == 0:
                 rank = 1
@@ -625,43 +719,73 @@ def student_ranking(request):
     students_ranking = list(zip(student_list, ranking))
 
     query = request.GET.get('query')
-    context = {
-        'students' : students_ranking,
-        'query' : 0,
-        }
     if query:
-        try:   
-            query = int(query)
-            while (students[query-1].karma.score==students[query].karma.score): # to show students that have the same karma score as the cut-off 
-                query = query+1
-            students = students[:query]
-            context = {
-                'students' : students_ranking,
-                'query' : query,
+        try:
+            target = int(query)
+            if target > len(students):
+                messages.error(request, f'Enter a number between 1 and {students.count()}')
+            else:
+                queried_students_ranking = [ (s, r) for (s, r) in students_ranking if r <= target ]
+
+                if request.GET.get('download') == 'download':
+                    context = {
+                        'students' : queried_students_ranking,
+                        'school_total' : len(students),
+                        'query' : query,
+                        'school' : staff.school.name
+                    }
+                    filename = f'{staff.school.name}_student_leaderboard_top{query}.pdf'
+                    return render_to_pdf('download-leaderboard.html', context, name=filename)
+
+                paginator = Paginator(queried_students_ranking, per_page=10)
+                page = request.GET.get('page')
+
+                try:
+                    students_page = paginator.page(page)
+                except PageNotAnInteger:
+                    students_page = paginator.page(1)
+                except EmptyPage:
+                    students_page = paginator.page(paginator.num_pages)
+                
+                context = {
+                    'students' : students_page,
+                    'school_total' : len(students),
+                    'query' : query,
+                    'school' : staff.school.name
                 }
-            return render(request, 'leaderboard.html', context)
-        except: # handles 0, >=count and non-numerical input
-            m = f'Enter a number between 1 and {students.count()-1}'
-            messages.error(request, m)
-    return render(request, 'leaderboard.html', context)
+                return render(request, 'leaderboard.html', context)
+        except:
+            messages.error(request, 'Oops, an unexpected error occurred :(')
     
+    if request.GET.get('download') == 'download':
+        context = {
+            'students' : students_ranking,
+            'school_total' : len(students),
+            'query' : 0,
+            'school' : staff.school.name
+        }
+        filename = f'{staff.school.name}_student_leaderboard.pdf'
+        return render_to_pdf('download-leaderboard.html', context, name=filename)
+    
+    paginator = Paginator(students_ranking, per_page=10)
+    page = request.GET.get('page')
 
-# Download Leaderboard
+    try:
+        students_page = paginator.page(page)
+    except PageNotAnInteger:
+        students_page = paginator.page(1)
+    except EmptyPage:
+        students_page = paginator.page(paginator.num_pages)
+    
+    context = {
+        'students' : students_page,
+        'school_total' : len(students),
+        'query' : 0,
+        'school' : staff.school.name
+    }
 
-@login_required()
-@user_passes_test(is_staff, login_url='/unauthorized')
-def download_leaderboard(request, query):
-    staff = Staff.objects.get(user=request.user)
-    students = Student.objects.filter(school=staff.school).order_by('-karma__score')
-    if query==0:
-        context={'students':students}
-    else:
-        while (students[query-1].karma.score==students[query].karma.score): #to show students that have the same karma score as the cut-off 
-                query=query+1
-        students=students[:query]
-        context = {'students': students}
+    return render(request, 'leaderboard.html', context)
 
-    return render_to_pdf('download-leaderboard.html',context, name="leaderboard.pdf")
 
 
 # Generate Recommendation Letters
@@ -801,6 +925,7 @@ def generate_recommendation(request, student_name):
         return redirect ('base:download-recommendation', response=response)
 
 
+
 def render_to_pdf(template_src, context_dict, name):
     template = get_template(template_src)
     html  = template.render(context_dict)
@@ -810,6 +935,7 @@ def render_to_pdf(template_src, context_dict, name):
         result.seek(0)
         return FileResponse(result, as_attachment=True, filename=name)
     return
+
 
 
 @login_required()
@@ -823,12 +949,11 @@ def download_recommendation (request, response):
     }
     return render_to_pdf('download-recommendation.html', context, name="recommendation_letter.pdf")
 
-
-# ------------------ END OF SCHOOL STAFF VIEWS ----------------------
-
+# -------------------------------- END OF SCHOOL STAFF VIEWS -------------------------------
 
 
-# ------------------ SCHOOL ADMIN VIEWS ----------------------
+
+# ---------------------------------- SCHOOL ADMIN VIEWS ------------------------------------
 
 # School admin homepage / csv upload form - allows school admins to upload a csv file
 # with student names to populate the Student table
@@ -836,6 +961,23 @@ def download_recommendation (request, response):
 @login_required()
 @user_passes_test(is_admin, login_url='/unauthorized')
 def admin_home(request):
+    csv_form = UploadCsvForm()
+    student_form = StudentForm()
+
+    context = {
+        'csv_form' : csv_form,
+        'student_form' : student_form
+    }
+
+    return render(request, 'admin-home.html', context)
+
+
+
+# csv upload form - allows school admins to upload a csv file with student names to populate the Student table
+
+@login_required()
+@user_passes_test(is_admin, login_url='/unauthorized')
+def upload_csv(request):
     form = UploadCsvForm()
     if request.method == 'POST':
         form = UploadCsvForm(request.POST, request.FILES)
@@ -862,6 +1004,27 @@ def admin_home(request):
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
-    return render(request, 'admin-home.html', {'form': form})
+    # return render(request, 'admin-home.html', {'form': form})
+    return redirect('base:admin-home')
 
-# ------------------ END OF SCHOOL ADMIN VIEWS ----------------------
+
+
+@login_required()
+@user_passes_test(is_admin, login_url='/unauthorized')
+def student_form(request):
+    if request.method == 'POST':
+        admin = Admin.objects.get(user=request.user)
+        form = StudentForm(request.POST, initial={'school':admin.school})
+        if form.is_valid():
+            student = form.save(commit=False)
+            student.save()
+            karma = Karma.objects.create(student=student)
+            karma.save()
+            endorsement_stats = EndorsementStats.objects.create(student=student)
+            endorsement_stats.save()
+            messages.success(request, f'{student.name} has been successfully added!')
+            return redirect('base:admin-home')
+        messages.error(request, 'Oops, something went wrong :(')
+    return redirect('base:admin-home')
+
+# --------------------------------- END OF SCHOOL ADMIN VIEWS ---------------------------------

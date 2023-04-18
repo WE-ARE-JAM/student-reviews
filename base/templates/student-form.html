@@ -1,0 +1,12 @@
+{% load crispy_forms_tags %}
+
+<div class="container py-5">
+    <h1>Add Student</h1>
+    <form action="{% url 'base:add-student' %}" class="student-form" method="POST">
+        {% csrf_token %}
+        {{ student_form|crispy }}
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-primary" type="submit">Add Student</button>
+        </div>
+    </form>
+</div>

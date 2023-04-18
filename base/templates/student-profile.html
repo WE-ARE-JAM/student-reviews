@@ -68,6 +68,9 @@
 <div class="container py-5">
     <div class="d-flex justify-content-between">
         <h2>Reviews</h2>
+
+        
+
         <a href="{% url 'base:write-review' student.name %}">
             <button type="button" class="btn btn-primary">Write Review</button>
         </a>
@@ -116,6 +119,11 @@
             </div>
             
         {% endfor %}
+        <div class="card">
+            <div class="card-header d-flex justify-content-center">
+                <a href="{% url 'base:student-reviews' student.name %}" style="text-decoration: underline;">See all reviews for {{ student.name }}</a>
+            </div>
+        </div>
     {% else %}
         <p>No reviews found.</p>
     {% endif %}

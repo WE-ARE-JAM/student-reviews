@@ -1,9 +1,10 @@
 from django import forms
+from django.urls import reverse
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User, Group
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Field, Row, Column
-from .models import Admin, Staff, School, Review
+from crispy_forms.layout import Submit, Layout, Field, Fieldset, Row, Column, Div
+from .models import Admin, Staff, School, Student, Review
 
 
 class SchoolRegistrationForm(forms.ModelForm):
@@ -36,6 +37,13 @@ class AdminRegistrationForm(UserCreationForm):
         user.groups.add(admin_group)
 
         return admin
+
+    #checks if email already exists in the database
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email already exists")
+        return email
 
 
 # form for registering school staff
@@ -81,8 +89,60 @@ class UploadCsvForm(forms.Form):
         self.helper.form_id = 'upload-csv'
         self.helper.form_class = 'blueForms'
         self.helper.form_method = 'post'
+        self.helper.form_action = reverse('base:student-upload')
 
-        self.helper.add_input(Submit('submit', 'Upload'))
+        self.helper.layout = Layout(
+            Field('csv_file'),
+            Div(
+                Submit('submit', 'Upload'), css_class="d-flex justify-content-end"
+            )
+        )
+
+
+class StudentForm(forms.ModelForm):
+    school = forms.ModelChoiceField(
+        widget=forms.HiddenInput(),
+        queryset=School.objects.all(),
+        required=True
+    )
+
+    class Meta:
+        model = Student
+        fields = ('name', 'school')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['school'].disabled = True
+
+    # def save(self, commit=True):
+    #     student = super(StudentForm, self).save(commit=False)
+    #     student.name = self.cleaned_data['name']
+    #     if commit:
+    #         student.save()
+    #     return student
+
+    # def clean_name(self):
+    #     name = self.cleaned_data.get('name')
+    #     school = self.cleaned_data.get('school')
+    #     if Student.objects.filter(name=name, school=school).exists():
+    #         raise forms.ValidationError("Student has already been added.")
+    #     return name
+
+    # def clean(self):
+    #     cleaned_data = super().clean()
+    #     name = self.cleaned_data['name']
+    #     school = self.cleaned_data['school']
+    #     if Student.objects.filter(name=name, school=school).exists():
+    #         raise forms.ValidationError("Student has already been added.")
+    #     return name
+
+    # def is_valid(self):
+    #     name = self.cleaned_data.get('name')
+    #     school = self.cleaned_data.get('school')
+    #     if Student.objects.filter(name=name, school=school).exists():
+    #         raise forms.ValidationError("Student has already been added.")
+    #     return super(OrderTestForm, self).is_valid()
+
 
 
 # form for writing a review for a student
@@ -104,6 +164,8 @@ class ReviewForm(forms.ModelForm):
         if rating < 1 or rating > 5:
             raise forms.ValidationError('Rating must be between 1 and 5.')
         return rating
+
+
 
 #form for recommendation letter
 class LetterForm(forms.Form):
