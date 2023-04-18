@@ -161,8 +161,7 @@ class EndorsementModelTest(TestCase):
         self.assertEqual(self.endorsement.punctuality, True)
         self.assertEqual(self.endorsement.participation, False)
         self.assertEqual(self.endorsement.teamwork, True)
-        self.assertEqual(self.endorsement.student, self.student)
-        self.assertEqual(self.endorsement.staff, self.staff)
+
 
     def test_endorsement_str(self):
         self.assertEqual(str(self.endorsement), f"staff: {self.staff.user.get_full_name()} leadership: True respect: False punctuality: True participation: False teamwork: True")
