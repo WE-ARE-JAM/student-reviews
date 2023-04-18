@@ -68,7 +68,9 @@ CSRF_TRUSTED_ORIGINS = [
     'https://rate-my-students.up.railway.app',
     'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us93.gitpod.io',
     'https://8000-wearejam-studentreviews-ipx1dkj9eqx.ws-us92.gitpod.io',
-    'https://8000-wearejam-studentreviews-h6ynxtko5ln.ws-us90.gitpod.io'
+    'https://8000-wearejam-studentreviews-h6ynxtko5ln.ws-us90.gitpod.io',
+    'https://8000-wearejam-studentreviews-4wa98702mpm.ws-us93.gitpod.io',
+    'https://8000-wearejam-studentreviews-fn8oxupqwa5.ws-us93.gitpod.io'
 ]
 
 SESSION_COOKIE_SECURE = True
