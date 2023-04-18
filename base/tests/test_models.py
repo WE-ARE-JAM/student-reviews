@@ -292,7 +292,7 @@ class StatsModelTest(TestCase):
         self.assertEqual(self.stats.upvotes, 1)
 
     def test_downvotes(self):
-        self.assertEqual(self.stats.upvotes, 1)
+        self.assertEqual(self.stats.downvotes, 0)
         
     def test_upvotes_no_votes(self):
         self.assertEqual(self.stats_empty.upvotes, 0)
@@ -305,7 +305,7 @@ class StatsModelTest(TestCase):
         vote3 = Vote.objects.create(staff=self.staff2, review=self.review_empty, value='UP')
         self.assertEqual(self.stats_empty.upvotes, 2)
 
-    def test_multiple_upvotes(self):
+    def test_multiple_downvotes(self):
         vote2 = Vote.objects.create(staff=self.staff, review=self.review_empty, value='DOWN')
         vote3 = Vote.objects.create(staff=self.staff2, review=self.review_empty, value='DOWN')
         self.assertEqual(self.stats_empty.downvotes, 2)
@@ -326,7 +326,7 @@ class StaffInboxTest(TestCase):
         self.staff = Staff.objects.create(user=self.user, school=self.school)
         self.staff_inbox = Staff_Inbox.objects.create(staff=self.staff, message='Test message')
 
-    def test_staff_inbox_staff(self):
+    def test_staff_inbox(self):
         self.assertEqual(self.staff_inbox.staff, self.staff)
 
     def test_staff_inbox_message(self):
