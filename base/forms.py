@@ -83,6 +83,7 @@ class StaffRegistrationForm(UserCreationForm):
 class UploadCsvForm(forms.Form):
     csv_file = forms.FileField(label='Select a CSV file ')
 
+    # using django crispy forms FormHelper() to control django form rendering and behavior
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -114,35 +115,6 @@ class StudentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['school'].disabled = True
 
-    # def save(self, commit=True):
-    #     student = super(StudentForm, self).save(commit=False)
-    #     student.name = self.cleaned_data['name']
-    #     if commit:
-    #         student.save()
-    #     return student
-
-    # def clean_name(self):
-    #     name = self.cleaned_data.get('name')
-    #     school = self.cleaned_data.get('school')
-    #     if Student.objects.filter(name=name, school=school).exists():
-    #         raise forms.ValidationError("Student has already been added.")
-    #     return name
-
-    # def clean(self):
-    #     cleaned_data = super().clean()
-    #     name = self.cleaned_data['name']
-    #     school = self.cleaned_data['school']
-    #     if Student.objects.filter(name=name, school=school).exists():
-    #         raise forms.ValidationError("Student has already been added.")
-    #     return name
-
-    # def is_valid(self):
-    #     name = self.cleaned_data.get('name')
-    #     school = self.cleaned_data.get('school')
-    #     if Student.objects.filter(name=name, school=school).exists():
-    #         raise forms.ValidationError("Student has already been added.")
-    #     return super(OrderTestForm, self).is_valid()
-
 
 
 # form for writing a review for a student
@@ -171,6 +143,7 @@ class ReviewForm(forms.ModelForm):
 class LetterForm(forms.Form):
     response = forms.CharField(widget=forms.Textarea)
 
+    # using django crispy forms FormHelper() to control django form rendering and behavior
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
