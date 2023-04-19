@@ -863,7 +863,7 @@ def generate_recommendation(request, student_name):
         if stats.teamwork > highest_endorsements['teamwork']:
             highest_endorsements['teamwork'] = stats.teamwork
 
-    qualities = []
+    qualities = []  #will be used in templates if OpenAI servers are busy
     if endorsement_stats.leadership>=0.5*highest_endorsements['leadership']: # record qualities if the are at least half of the highest in the school
         qualities.append("leadership")
     if endorsement_stats.respect>=0.5*highest_endorsements['respect']:
@@ -888,6 +888,9 @@ def generate_recommendation(request, student_name):
         keywords = ["excellent", "exemplary", "outstanding", "remarkable", "model"]
     else:   # rank<0.5, fair/good
         keywords = ["decent", "suitable", "average", "standard", "passable", "adequate", "moderate"]
+
+    # prompts will be used to autogenerate a recommendation letter using the OpenAI API.
+    # templates will be used when the OPENAI servers are busy. They will require manual completion by teachers in some parts
 
     if set:
         prompt = f"Based on {summary}, write a recommendation letter from {staff.user.get_full_name()} for a student named {student_name} who attended {staff.school} using words like {random.sample(keywords,3)}"
