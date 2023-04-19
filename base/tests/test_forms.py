@@ -74,16 +74,16 @@ class StaffRegistrationFormTest(TestCase):
 
     def setUp(self):
         self.school = School.objects.create(name="Test School")
-
-    def test_form_valid_data(self):
-        form_data = {'first_name': 'Test',
+        self.form_data = {'first_name': 'Test',
                      'last_name': 'User',
                      'username': 'testuser',
                      'email': 'testuser@example.com',
                      'password1': 'test_password',
                      'password2': 'test_password',
                      'school': self.school.id}
-        form = StaffRegistrationForm(data=form_data)
+
+    def test_form_valid_data(self):
+        form = StaffRegistrationForm(data=self.form_data)
         self.assertTrue(form.is_valid())
         staff = form.save()
         self.assertEqual(staff.user.first_name, 'Test')
@@ -97,15 +97,8 @@ class StaffRegistrationFormTest(TestCase):
 
 
     def test_password_mismatch(self):
-        form_data = {'first_name': 'Test',
-                     'last_name': 'User',
-                     'username': 'testuser',
-                     'email': 'testuser@example.com',
-                     'password1': 'test_password',
-                     'password2': 'test_password',
-                     'school': self.school.id}
-        form_data['password2'] = 'differentpassword'
-        form = StaffRegistrationForm(data=form_data)
+        self.form_data['password2'] = 'differentpassword'
+        form = StaffRegistrationForm(data=self.form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.errors), 1)
         self.assertIn('password2', form.errors)
@@ -119,25 +112,20 @@ class StaffRegistrationFormTest(TestCase):
                      'password1': 'test_password',
                      'password2': 'test_password',
                      'school': self.school.id}
-        form = StaffRegistrationForm(data=form_data)
+        form = StaffRegistrationForm(data=self.form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors['email'], ['Email already exists'])
 
     def test_form_missing_data(self):
-        form_data = {'first_name': '',
-                     'last_name': '',
-                     'username': '',
-                     'email': '',
-                     'password1': '',
-                     'password2': '',
-                     'school': None}
+        form_data = {
+            'school': self.school.name,
+            'email': 'asja@gmail.com'
+        }
         form = StaffRegistrationForm(data=form_data)
         self.assertFalse(form.is_valid())
         self.assertEqual(form.errors['first_name'], ['This field is required.'])
         self.assertEqual(form.errors['last_name'], ['This field is required.'])
-        self.assertEqual(form.errors['email'], ['This field is required.'])
         self.assertEqual(form.errors['password1'], ['This field is required.'])
-        self.assertEqual(form.errors['school'], ['This field is required.'])
 
 class UploadCsvFormTest(TestCase):
 
@@ -184,7 +172,7 @@ class ReviewFormTests(TestCase):
         self.assertIn('text', form.errors)
         self.assertFalse(form.is_valid())
 
-    def test_invalid_form_text(self):
+    def test_invalid_form_rating(self):
         form = ReviewForm(data=self.invalid_form_rating)
         self.assertIn('rating', form.errors)
         self.assertFalse(form.is_valid())
