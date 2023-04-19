@@ -184,7 +184,7 @@ class ReviewFormTests(TestCase):
         self.assertIn('text', form.errors)
         self.assertFalse(form.is_valid())
 
-    def test_invalid_form_text(self):
+    def test_invalid_form_rating(self):
         form = ReviewForm(data=self.invalid_form_rating)
         self.assertIn('rating', form.errors)
         self.assertFalse(form.is_valid())
