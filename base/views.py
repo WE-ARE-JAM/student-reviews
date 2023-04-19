@@ -89,8 +89,9 @@ def unauthorized(request):
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
 def superuser_home(request):
     activities_set = Activity.objects.filter(user=request.user)
-    activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True)
+    activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True) # sort list into most-recent first
 
+    # pagination to show 8 items per page
     paginator = Paginator(activities_list, per_page=8)
     page = request.GET.get('page')
 
@@ -108,6 +109,8 @@ def superuser_home(request):
     return render(request, 'superuser-home.html', context)
 
 
+
+# School registration view - allows authenticated superusers to add new schools to the database
 
 @login_required()
 @user_passes_test(lambda u: u.is_superuser, login_url='/unauthorized')
@@ -179,6 +182,8 @@ def staff_register(request):
 def staff_home(request):
     user = request.user
     staff = Staff.objects.get(user=user)
+
+    # count the total number of upvotes and downvotes this staff user has received
     reviews = Review.objects.filter(staff=staff)
     num_reviews = reviews.count()
     num_upvotes = 0
@@ -187,6 +192,7 @@ def staff_home(request):
         num_upvotes += review.stats.upvotes
         num_downvotes += review.stats.downvotes
     
+    # count the number of skill endorsements this staff user has given
     endorsements = Endorsement.objects.filter(staff=staff)
     num_endorsements_given = 0
     for endorsement in endorsements:
@@ -198,6 +204,8 @@ def staff_home(request):
 
     activities_set = Activity.objects.filter(user=user)
     activities_list = sorted(list(activities_set), key=lambda x: x.created_at, reverse=True)
+
+    # pagination to show 5 items per page
     paginator = Paginator(activities_list, per_page=5)
     page = request.GET.get('page')
 
@@ -230,6 +238,8 @@ def student_search(request):
     staff = Staff.objects.get(user=current_user)
     search_results = Student.objects.filter(name__icontains=query, school=staff.school)
     search_results = search_results.order_by('name')
+
+    # pagination to show 6 items per page
     paginator = Paginator(search_results, per_page=6)
     page = request.GET.get('page')
 
@@ -249,7 +259,7 @@ def student_search(request):
 
 
 
-# Show student profile
+# View to show student profile to staff users from the same school as the student
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
@@ -261,6 +271,7 @@ def student_profile(request, student_name):
     reviews_list = sorted(list(reviews), key=lambda x: x.created_at, reverse=True)
     endorsement_stats = student.endorsementstats
 
+    # calculating the school highest for each skill
     highest_endorsements = {
         'leadership' : 0,
         'respect' : 0,
@@ -281,6 +292,7 @@ def student_profile(request, student_name):
         if stats.teamwork > highest_endorsements['teamwork']:
             highest_endorsements['teamwork'] = stats.teamwork
     
+    # record of whether or not this staff user has voted on this student's reviews
     voted = []
     for review in reviews_list:
         if Vote.objects.filter(staff=staff, review=review).exists():
@@ -294,30 +306,31 @@ def student_profile(request, student_name):
     reviews_voted = list(zip(reviews_list, voted))
     reviews_voted = reviews_voted[:3]
     
+    # generating the student summary
     if reviews:
         load_dotenv()
-        openai.api_key= os.getenv('OPENAI_API_KEY')
-        reviews= reviews.order_by('-created_at')
+        openai.api_key = os.getenv('OPENAI_API_KEY')
+        reviews = reviews.order_by('-created_at')
         if reviews.count()>10:  # only use the 10 latest reviews to reduce API cost
             reviews=reviews[:10]
-        text=""
+        text = ""
         for review in reviews:
-            text+=review.text
-        prompt=f"Summarize '{text}'"
+            text += review.text
+        prompt = f"Summarize '{text}'"
         try:
-            response= openai.Completion.create(
-                model="text-davinci-003",
-                prompt=prompt,
-                max_tokens=1000,
-                temperature=0
+            response = openai.Completion.create(
+                model = "text-davinci-003",
+                prompt = prompt,
+                max_tokens = 1000,
+                temperature = 0
             )
             for result in response.choices:
-                summary=result.text    # to get and keep the last value in the {}
+                summary = result.text    # to get and keep the last value in the {}
 
         except:
-            summary="Our servers are unavailable at this time"
+            summary = "Our servers are unavailable at this time"
     else:
-        summary="There's not much on this student..."
+        summary = "There's not much on this student..."
     
     context = {
         'student' : student,
@@ -331,7 +344,7 @@ def student_profile(request, student_name):
 
 
 
-# Sort reviews for a student
+# List and sort reviews for a student
 
 @login_required()
 @user_passes_test(is_staff, login_url='/unauthorized')
@@ -357,6 +370,7 @@ def student_reviews(request, student_name):
         
     reviews_list = list(reviews)
 
+    # record of whether or not this staff user has voted on this student's reviews
     voted = []
     for review in reviews_list:
         if Vote.objects.filter(staff=staff, review=review).exists():
@@ -369,6 +383,7 @@ def student_reviews(request, student_name):
 
     reviews_voted = list(zip(reviews_list, voted))
 
+    # pagination to show 8 items per page
     paginator = Paginator(reviews_voted, per_page=8)
     page = request.GET.get('page')
 
@@ -696,6 +711,7 @@ def student_ranking(request):
     student_list = list(students)
     ranking = []
 
+    # calculating student rank when multiple students have the same rank/karma score
     for index, student in enumerate(student_list):
         if len(student_list) == 1:
             rank = 1
@@ -737,6 +753,7 @@ def student_ranking(request):
                     filename = f'{staff.school.name}_student_leaderboard_top{query}.pdf'
                     return render_to_pdf('download-leaderboard.html', context, name=filename)
 
+                # pagination to show 10 items per page
                 paginator = Paginator(queried_students_ranking, per_page=10)
                 page = request.GET.get('page')
 
@@ -804,7 +821,7 @@ def generate_recommendation(request, student_name):
     max_karma = top_student.karma
     rank = karma.score/max_karma.score
 
-    set= Review.objects.filter(student=student, is_good=True).order_by('-rating')   # get positive reviews, chatGPT wont write a recommendation letter with negative reviews
+    set = Review.objects.filter(student=student, is_good=True).order_by('-rating')   # get positive reviews, chatGPT wont write a recommendation letter with negative reviews
     if set: 
         if set.count()>5:   # reduce set size to 5 for cheaper API calls
             set = set[:5]
@@ -814,10 +831,10 @@ def generate_recommendation(request, student_name):
         prompt = f"Summarize '{text}'"
         try:
             response = openai.Completion.create(
-                model="text-davinci-003",
-                prompt=prompt,
-                max_tokens=1000,
-                temperature=0
+                model = "text-davinci-003",
+                prompt = prompt,
+                max_tokens = 1000,
+                temperature = 0 
             )
             for result in response.choices:
                 summary = result.text    #to get and keep the last value in the {}
@@ -1004,11 +1021,11 @@ def upload_csv(request):
                     return redirect('base:admin-home')
                 except Exception as e:
                     form.add_error('csv_file', 'Error processing file: ' + str(e))
-    # return render(request, 'admin-home.html', {'form': form})
     return redirect('base:admin-home')
 
 
 
+# View to allow admin users to add students to the system "one-by-one"/manually
 @login_required()
 @user_passes_test(is_admin, login_url='/unauthorized')
 def student_form(request):
