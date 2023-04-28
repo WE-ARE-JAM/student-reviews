@@ -4,7 +4,7 @@
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/WE-ARE-JAM/student-reviews)
 
-Rate My Students is a reviews site made for secondary school teachers in Trinidad & Tobago to review and assign ratings to their experiences with specific students.
+[Rate My Students](https://rate-my-students.up.railway.app) is a reviews site made for secondary school teachers in Trinidad & Tobago to review and assign ratings to their experiences with specific students.
 
 ## Background
 
@@ -29,6 +29,10 @@ Secondary school teachers often have to write recommendation letters for student
   - Generate and/or edit recommendation letters for students
   - Download recommendation letters as PDF files
   - Copy recommendation letters to clipboard
+
+## Deployed Application
+
+Follow this link to check out Rate My Students: https://rate-my-students.up.railway.app
 
 ## Tech Stack
 
